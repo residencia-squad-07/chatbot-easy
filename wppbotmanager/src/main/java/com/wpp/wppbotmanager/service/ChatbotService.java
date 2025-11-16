@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -245,14 +248,17 @@ public class ChatbotService {
                     case "1" -> 7;
                     case "2" -> 15;
                     case "3" -> 30;
-
-
-
+                    case "4" -> 4;
+                    case "5" -> 5;
                     case "6" -> -1;
                     default -> 0;
                 };
 
-                if (diasResumo > 0) {
+                if (diasResumo == 4) {
+                    messageService.sendMessage(numUser, "Gerando resumo do mês atual...");
+                } else if (diasResumo == 5) {
+                    messageService.sendMessage(numUser, "Gerando resumo do mês anterior...");
+                } else if (diasResumo > 0) {
                     messageService.sendMessage(numUser, "Gerando resumo de " + diasResumo + " dias...");
                     enviarRelatorio(numUser, diasResumo,null, null, reportRequest);
                     resposta = "";
@@ -295,6 +301,16 @@ public class ChatbotService {
             case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
             case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
+            case "MES_ATUAL_RESUMO" -> {
+                DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate dataInicial = LocalDate.now().withDayOfMonth(1);
+                LocalDate dataFinal = LocalDate.now();
+                String dataInicialFormatada = dataInicial.format(formatador);
+                String dataFinalFormatada = dataFinal.format(formatador);
+                enviarRelatorio(numUser, 0, dataInicialFormatada, dataFinalFormatada, reportRequest);
+                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
             case "ACESSO_NEGADO" -> { return; }
             case "GERANDO_RESUMO_PERSONALIZADO" -> {
                 String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
