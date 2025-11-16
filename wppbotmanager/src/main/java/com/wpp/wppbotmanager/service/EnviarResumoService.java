@@ -67,7 +67,7 @@ public class EnviarResumoService {
 
             String url;
             if (dias != 0) {
-                url = "http://localhost:3002/relatorio/resumo_geral/dias/" + dias;
+                url = "http://localhost:3001/omie/relatorio-financeiro?dias=" + dias;
             } else {
                 url = "http://localhost:3001/omie/relatorio-financeiro?data_inicio=" + dataInicio + "&data_fim=" + dataFim;
             }
@@ -90,13 +90,15 @@ public class EnviarResumoService {
                 JsonNode resumo = jsonResponse.path("resumo_geral");
                 JsonNode periodo = resumo.path("periodo_analisado");
                 int totalDias = periodo.path("total_dias").asInt(0);
+                String data_inicio = periodo.path("data_inicio").asText("");
+                String data_fim = periodo.path("data_fim").asText("");
                 String totalReceitas = resumo.path("total_receitas").asText("");
                 String totalDespesas = resumo.path("total_despesas_custos").asText("");
                 String resultado = resumo.path("resultado_liquido").asText("");
                 JsonNode cat = jsonResponse.path("detalhes_por_categoria");
                 String out = "📊 *Resumo Geral – Período Analisado*\n" +
-                        "🗓️ De: " + dataInicio + "\n" +
-                        "🗓️ Até: " + dataFim + "\n\n" +
+                        "🗓️ De: " + data_inicio + "\n" +
+                        "🗓️ Até: " + data_fim + "\n\n" +
                         "📅 *Duração:* " + totalDias + " dias\n\n" +
                         "💰 *Totais*\n\n" +
                         "Receitas: " + totalReceitas + "\n\n" +
