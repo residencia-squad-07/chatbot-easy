@@ -67,7 +67,7 @@ public class EnviarResumoService {
 
             String url;
             if (dias != 0) {
-                url = "http://localhost:3002/relatorio/resumo_geral/dias/" + dias;
+                url = "http://localhost:3001/omie/relatorio-financeiro?dias=" + dias;
             } else {
                 url = "http://localhost:3001/omie/relatorio-financeiro?data_inicio=" + dataInicio + "&data_fim=" + dataFim;
             }
