@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Map;
 
@@ -25,15 +24,15 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_PRINCIPAL =
             """
-                    Olá, bem-vindo ao atendimento do Chatbot Easy!
-                    Escolha uma opção:\s
-                    1️⃣ - Resumo
-                    2️⃣ - Relatório
-                    3️⃣ - Gestão de Usuários""";
+                    Olá, sou o Chatbot Easy! O que você gostaria de fazer?\s
+                    1️⃣ - Visualizar Resumo Financeiro (na Tela)
+                    2️⃣ - Gerar Relatório Financeiro (PDF)
+                    3️⃣ - Gerenciar Usuários da Plataforma
+                    0️⃣ - Sair""";
 
     private static final String TEXTO_MENU_RESUMO =
             """
-                    Escolha um intervalo:
+                    Escolha um intervalo:          
                     1️⃣ - 7 dias
                     2️⃣ - 15 dias
                     3️⃣ - 30 dias
@@ -44,7 +43,7 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_RELATORIO =
             """
-                    Escolha um intervalo:
+                    Escolha um intervalo:          
                     1️⃣ - 7 dias
                     2️⃣ - 15 dias
                     3️⃣ - 30 dias
