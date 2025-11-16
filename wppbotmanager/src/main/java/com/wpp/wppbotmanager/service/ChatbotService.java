@@ -24,40 +24,45 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_PRINCIPAL =
             """
-                    Olá, sou o Chatbot Easy! O que você gostaria de fazer?\s
-                    1️⃣ - Visualizar Resumo Financeiro (na Tela)
-                    2️⃣ - Gerar Relatório Financeiro (PDF)
-                    3️⃣ - Gerenciar Usuários da Plataforma
-                    0️⃣ - Sair""";
+                    > Olá, sou o Chatbot Easy! O que você gostaria de fazer?\s
+                    
+                    1️⃣ - *Visualizar Resumo Financeiro (na Tela)*
+                    2️⃣ - *Gerar Relatório Financeiro (PDF)*
+                    3️⃣ - *Gerenciar Usuários da Plataforma*
+                    0️⃣ - *Sair*""";
 
     private static final String TEXTO_MENU_RESUMO =
             """
-                    Escolha um intervalo:          
-                    1️⃣ - 7 dias
-                    2️⃣ - 15 dias
-                    3️⃣ - 30 dias
-                    4️⃣ - Mês atual
-                    5️⃣ - Mês anterior
-                    6️⃣ - Personalizado
-                    0️⃣ - Voltar""";
+                    > *Escolha um intervalo:*
+                    
+                    1️⃣ - *7 dias*
+                    2️⃣ - *15 dias*
+                    3️⃣ - *30 dias*
+                    4️⃣ - *Mês atual*
+                    5️⃣ - *Mês anterior*
+                    6️⃣ - *Personalizado*
+                    0️⃣ - *Voltar*""";
 
     private static final String TEXTO_MENU_RELATORIO =
             """
-                    Escolha um intervalo:          
-                    1️⃣ - 7 dias
-                    2️⃣ - 15 dias
-                    3️⃣ - 30 dias
-                    4️⃣ - Mês atual
-                    5️⃣ - Mês anterior
-                    6️⃣ - Personalizado
-                    0️⃣ - Voltar""";
+                    > *Escolha um intervalo:*
+                    
+                    1️⃣ - *7 dias*
+                    2️⃣ - *15 dias*
+                    3️⃣ - *30 dias*
+                    4️⃣ - *Mês atual*
+                    5️⃣ - *Mês anterior*
+                    6️⃣ - *Personalizado*
+                    0️⃣ - *Voltar*""";
 
     private static final String TEXTO_MENU_GESTAO_USUARIOS =
-            """
-                    1️⃣ - Cadastrar usuários
-                    2️⃣ - Listar usuários
-                    3️⃣ - Deletar usuários
-                    0️⃣ - Voltar""";
+            """     
+                    > *Escolha uma opção:*
+                    
+                    1️⃣ - *Cadastrar usuários*
+                    2️⃣ - *Listar usuários*
+                    3️⃣ - *Deletar usuários*
+                    0️⃣ - *Voltar*""";
 
     private static final Map<String, String> MAPA_MENU_PRINCIPAL = Map.of(
             "1", "SUBMENU_RESUMO",
@@ -155,21 +160,21 @@ public class ChatbotService {
 
             case UserStateManagerService.INSERINDO_DATA_INICIO:
                 userStateManager.setTempValue(numUser, "dataInicio", textInput);
-                messageService.sendMessage(numUser, "Data início registrada: " + textInput);
+                messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
                 messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA:");
                 proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
                 break;
 
             case UserStateManagerService.INSERINDO_DATA_FIM:
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
-                messageService.sendMessage(numUser, "Data fim registrada: " + textInput);
+                messageService.sendMessage(numUser, "Data final registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
                 break;
 
             case UserStateManagerService.AGUARDANDO_CONTINUACAO:
                 if ("sim".equalsIgnoreCase(textInput) || "s".equalsIgnoreCase(textInput)) {
                     proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                } else if ("nao".equalsIgnoreCase(textInput) || "n".equalsIgnoreCase(textInput)) {
+                } else if ("nao".equalsIgnoreCase(textInput) || "n".equalsIgnoreCase(textInput) || "não".equalsIgnoreCase(textInput)) {
                     resposta = "Entendido. Obrigado pelo contato!";
                     userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
                     return;
