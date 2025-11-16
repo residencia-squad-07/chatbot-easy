@@ -61,18 +61,18 @@ export async function connectToWhatsApp() {
     if (rjid.endsWith("@newsletter")) return;
     if (rjid.endsWith("status@broadcast")) return;
 
-    let textoMensagem = "";
-    if (msg.message.conversation) {
-      textoMensagem = msg.message.conversation;
-    } else if (msg.message.extendedTextMessage?.text) {
-      textoMensagem = msg.message.extendedTextMessage.text;
-    } else if (msg.message.imageMessage) {
-      textoMensagem = "[Imagem recebida]"
-    } else if (msg.message.videoMessage) {
-      textoMensagem = "[Video recebido]"
-    } else if (msg.message.stickerMessage) {
-      textoMensagem = "[Sticker recebido]"
-    }
+      let textoMensagem = "";
+      if (msg.message.conversation) {
+          textoMensagem = msg.message.conversation;
+      } else if (msg.message.extendedTextMessage?.text) {
+          textoMensagem = msg.message.extendedTextMessage.text;
+      } else if (msg.message.imageMessage) {
+          textoMensagem = "[Imagem recebida]"
+      } else if (msg.message.videoMessage) {
+          textoMensagem = "[Video recebido]"
+      } else if (msg.message.stickerMessage) {
+          textoMensagem = "[Sticker recebido]"
+      }
 
     const sender = msg.key.remoteJid
     const senderNumber = rjid.replace(/@s\.whatsapp\.net$/, "") || "";
