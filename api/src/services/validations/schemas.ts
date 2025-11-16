@@ -33,10 +33,18 @@ const usuarioSchema = joi.object({
   id_empresa: joi.number().optional()
 }).min(1)
 
+const agendSchema = joi.object({
+  data_solicitacao: joi.date().optional(),
+  proxima_execucao: joi.date().optional(),
+  status: joi.string().valid('ativo',`inativo`),
+  id_usuario: joi.number().optional()
+})
+
 export default {
   adminSchema,
   configErpSchema,
   empresaSchema,
   solicitacaoSchema,
-  usuarioSchema
+  usuarioSchema,
+  agendSchema
 }

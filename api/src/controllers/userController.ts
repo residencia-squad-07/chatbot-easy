@@ -83,6 +83,22 @@ const getUsuarioByTelefone = async (req: Request, res: Response) => {
   }
 };
 
+const marcarPrimeiroContato = async (req: Request, res: Response) => {
+  try {
+    const { telefone } = req.params;
+
+    const { type, message, status } = await userService.marcarPrimeiroContato(telefone);
+
+    if (type) {
+      return res.status(status).json({ message });
+    }
+
+    return res.status(status).json({ message });
+  } catch (error) {
+    console.error('[ERROR] marcarPrimeiroContato:', error);
+    return res.status(500).json({ message: 'Erro interno no servidor' });
+  }
+}
 
 export default {
     criarUsuario,
@@ -91,5 +107,6 @@ export default {
     deleteUsuario,
     getUsuarioById,
     getUsuariosByEmp,
-    getUsuarioByTelefone
+    getUsuarioByTelefone,
+    marcarPrimeiroContato
 }

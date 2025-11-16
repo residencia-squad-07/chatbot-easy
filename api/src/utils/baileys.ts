@@ -3,7 +3,7 @@ import makeWASocket, {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   DisconnectReason,
-    jidNormalizedUser,
+  jidNormalizedUser,
   proto
 } from "@whiskeysockets/baileys";
 import pino from "pino";
@@ -47,18 +47,19 @@ export async function connectToWhatsApp() {
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
-      const msg = messages[0];
-      if (!msg.message || msg.key.fromMe) return;
-      if (msg.key.remoteJid) {
-          msg.key.remoteJid = jidNormalizedUser(msg.key.remoteJid);
-      } else {
-          return;
-      }
+    const msg = messages[0];
+    if (!msg.message || msg.key.fromMe) return;
+    if (msg.key.remoteJid) {
+        msg.key.remoteJid = jidNormalizedUser(msg.key.remoteJid);
+    } else {
+        return;
+    }
 
-      const rjid = msg.key.remoteJid;
+    const rjid = msg.key.remoteJid;
 
-      if (rjid.endsWith("@g.us")) return;
-      if (rjid.endsWith("@newsletter")) return;
+    if (rjid.endsWith("@g.us")) return;
+    if (rjid.endsWith("@newsletter")) return;
+    if (rjid.endsWith("status@broadcast")) return;
 
       let textoMensagem = "";
       if (msg.message.conversation) {
@@ -73,8 +74,8 @@ export async function connectToWhatsApp() {
           textoMensagem = "[Sticker recebido]"
       }
 
-      const sender = msg.key.remoteJid
-      const senderNumber = rjid.replace(/@s\.whatsapp\.net$/, "") || "";
+    const sender = msg.key.remoteJid
+    const senderNumber = rjid.replace(/@s\.whatsapp\.net$/, "") || "";
 
     const zona = "America/Sao_Paulo";
     const usuario = await Usuario.getUsuarioByNumber(senderNumber);

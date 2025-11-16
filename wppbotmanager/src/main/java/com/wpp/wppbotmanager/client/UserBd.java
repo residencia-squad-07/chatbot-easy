@@ -45,6 +45,16 @@ public class UserBd {
           .block();
   }
 
+    public String marcarPMensagem(String telefone, UserDto userDto) {
+      return userTb.put()
+          .uri("/pmensagem/{telefone}", telefone)
+          .bodyValue(userDto)
+          .retrieve()
+          .bodyToMono(String.class)
+          .doOnError(e -> System.err.println("Erro ao atualizar usuário: " + e.getMessage()))
+          .block();
+  }
+
   public String deleteUser(Integer id) {
       return userTb.delete()
           .uri("/duser/{id}", id)

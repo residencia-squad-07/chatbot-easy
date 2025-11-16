@@ -68,3 +68,7 @@ ALTER TABLE `Solicitacao` ADD CONSTRAINT `Solicitacao_id_usuario_fkey` FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE `ConfiguracaoERP` ADD CONSTRAINT `ConfiguracaoERP_id_empresa_fkey` FOREIGN KEY (`id_empresa`) REFERENCES `Empresa`(`id_empresa`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `Usuario`
+ADD COLUMN `primeiro_contato` ENUM('sim', 'nao') NOT NULL DEFAULT 'nao'
+AFTER `atividade`;

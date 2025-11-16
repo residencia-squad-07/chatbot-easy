@@ -26,6 +26,10 @@ public class UserService {
       return userBd.updateUser(id, userDto);
   }
 
+  public String marcarPMensagem(String telefone, UserDto userDto) {
+      return userBd.marcarPMensagem(telefone, userDto);
+  }
+
   public String deleteUser(Integer id) {
       return userBd.deleteUser(id);
   }

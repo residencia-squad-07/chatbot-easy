@@ -112,6 +112,24 @@ const getUsuarioByTelefone = async (telefone: string) => {
     }
 }
 
+const marcarPrimeiroContato = async (telefone: string) => {
+  const result = await userModel.marcarPrimeiroContato(telefone);
+
+  if (!result) {
+    return {
+      type: 'error',
+      message: 'Usuário não encontrado ou já possui primeiro contato registrado',
+      status: 400
+    };
+  }
+
+  return {
+    type: null,
+    message: 'Primeiro contato registrado com sucesso',
+    status: 200
+  };
+};
+
 export default {
     getAllUser,
     getUserById,
@@ -119,5 +137,6 @@ export default {
     deleteUsuario,
     updateUsuario,
     getUsuariosByEmp,
-    getUsuarioByTelefone
+    getUsuarioByTelefone,
+    marcarPrimeiroContato
 }

@@ -7,13 +7,14 @@ export interface Usuario {
   papel: number
   atividade: number
   id_empresa?: number | null
+  primeiro_contato?: number
 }
 
 
-const createUsuario = async ({ nome, telefone, papel, atividade, id_empresa }: Usuario) => {
+const createUsuario = async ({ nome, telefone, papel, atividade, id_empresa, primeiro_contato = 2 }: Usuario) => {
   const [{ insertId }]: any = await connection.execute(
-    `INSERT INTO Usuario (nome, telefone, papel, atividade, id_empresa) VALUES (?, ?, ?, ?, ?)`,
-    [nome, telefone ?? null, papel, atividade, id_empresa ?? null]
+    `INSERT INTO Usuario (nome, telefone, papel, atividade, id_empresa, primeiro_contato) VALUES (?, ?, ?, ?, ?, ?)`,
+    [nome, telefone ?? null, papel, atividade, id_empresa ?? null, primeiro_contato]
   )
   return insertId
 }
@@ -89,6 +90,15 @@ const deleteUsuario = async (id: number) => {
   return affectedRows
 }
 
+const marcarPrimeiroContato = async (telefone: string) => {
+  const [{ affectedRows }]: any = await connection.execute(
+    `UPDATE Usuario SET primeiro_contato = 'sim' WHERE telefone = ? AND primeiro_contato = 'nao'`,
+    [telefone]
+  )
+
+  return affectedRows > 0 
+}
+
 export default {
   createUsuario,
   getAllUsuarios,
@@ -97,5 +107,6 @@ export default {
   deleteUsuario,
   getUsuarioByNumber,
   getRoleByNumber,
-  getUsuariosByEmp
+  getUsuariosByEmp,
+  marcarPrimeiroContato
 }
