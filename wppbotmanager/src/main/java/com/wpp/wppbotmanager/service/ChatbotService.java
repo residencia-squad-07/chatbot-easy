@@ -24,7 +24,7 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_PRINCIPAL =
             """
-                    > Olá, sou o Chatbot Easy! O que você gostaria de fazer?\s
+                    > Olá, sou o Chatbot Easy! O que você gostaria de fazer?
                     
                     1️⃣ - *Visualizar Resumo Financeiro (na Tela)*
                     2️⃣ - *Gerar Relatório Financeiro (PDF)*
@@ -123,30 +123,11 @@ public class ChatbotService {
 
             case "SUBMENU_RESUMO":
                 proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
-                int diasResumo = switch (textInput) {
-                    case "1" -> 7;
-                    case "2" -> 15;
-                    case "3" -> 30;
-                    case "4" -> 4;
-                    case "5" -> 5;
-                    case "6" -> -1;
-                    default -> 0;
-                };
-
-                if (diasResumo == 4) {
-                    messageService.sendMessage(numUser, "Gerando resumo do mês atual...");
-                } else if (diasResumo == 5) {
-                    messageService.sendMessage(numUser, "Gerando resumo do mês anterior...");
-                } else if (diasResumo > 0) {
-                    messageService.sendMessage(numUser, "Gerando resumo de " + diasResumo + " dias...");
-                    enviarResumoService.enviarRelatorio(numUser, diasResumo,null, null, reportRequest);
-                } else if ("0".equals(textInput)) {
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                    resposta = TEXTO_MENU_PRINCIPAL;
-                } else if (diasResumo == -1) {
+                if ("6".equals(textInput)) {
                     messageService.sendMessage(numUser, "Por favor, insira a data inicial (formato DD/MM/AAAA):");
                     proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
-                    break;
+                } else if ("0".equals(textInput)) {
+                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
                 }
                 break;
 
@@ -161,7 +142,7 @@ public class ChatbotService {
             case UserStateManagerService.INSERINDO_DATA_INICIO:
                 userStateManager.setTempValue(numUser, "dataInicio", textInput);
                 messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
-                messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA:");
+                messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA):");
                 proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
                 break;
 
@@ -192,6 +173,27 @@ public class ChatbotService {
             case UserStateManagerService.MENU_PRINCIPAL -> resposta = TEXTO_MENU_PRINCIPAL;
 
             case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
+
+            case "7_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 7 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 7, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 7 dias foi enviado. Deseja algo?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "15_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 15 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 15, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 15 dias foi enviado. Deseja algo?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "30_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 30 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 30, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 30 dias foi enviado. Deseja algo?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
 
             case "MES_ATUAL_RESUMO" -> {
                 DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -226,8 +228,9 @@ public class ChatbotService {
                     break;
                 }
                 enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
-                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + "foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+
             }
 
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
