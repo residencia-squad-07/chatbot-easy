@@ -26,9 +26,6 @@ public class MessageServiceAuto {
         this.chatbotService = chatbotService;
     }
 
-    /**
-     * Método reaproveitável para processar uma mensagem individual
-     */
     public void processarMensagemIndividual(ReceiveMessageRequest msg) {
         String numUser = msg.getFrom();
         System.out.println("[DEBUG] Nova mensagem recebida manualmente de: " + numUser);
@@ -92,10 +89,7 @@ public class MessageServiceAuto {
             chatbotService.unknownUser(numUser);
         }
     }
-
-    /**
-     * Execução automática a cada segundo
-     */
+    
     @Scheduled(fixedRate = 1000)
     public void processarMensagensAutomaticamente() {
         try {
