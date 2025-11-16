@@ -17,4 +17,5 @@ public class ReceiveMessageRequest {
     private String data;
     private String hora;
     private String id_empresa;
+    private String primeiro_contato;
 }

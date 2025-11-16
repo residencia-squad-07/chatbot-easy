@@ -1,7 +1,7 @@
 package com.wpp.wppbotmanager.dto.enums;
 
-public class primeiro_contato {
-  public enum Primeiro_contato {
+public class first_contact {
+  public enum First_Contact {
     sim,
     nao
   }
