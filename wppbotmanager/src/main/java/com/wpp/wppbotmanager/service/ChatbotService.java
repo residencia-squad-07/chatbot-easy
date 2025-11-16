@@ -282,20 +282,10 @@ public class ChatbotService {
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
                 messageService.sendMessage(numUser, "Data fim registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
+                userStateManager.setState(numUser, proximoEstado);
                 break;
 
-            case UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO:
-                String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
-                String dataFim = (String) userStateManager.getTempValue(numUser, "dataFim");
-                if (dataInicio == null || dataFim == null) {
-                    messageService.sendMessage(numUser, "Erro: datas não encontradas. Tente novamente.");
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                    break;
-                }
-                enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
-                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                break;
+
 
             default:
                 proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
@@ -306,6 +296,18 @@ public class ChatbotService {
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
             case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
             case "ACESSO_NEGADO" -> { return; }
+            case "GERANDO_RESUMO_PERSONALIZADO" -> {
+                String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
+                String dataFim = (String) userStateManager.getTempValue(numUser, "dataFim");
+                if (dataInicio == null || dataFim == null) {
+                    messageService.sendMessage(numUser, "Erro: datas não encontradas. Tente novamente.");
+                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                    break;
+                }
+                enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
+                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
             case "ESTADO_INVALIDO" -> {
                 resposta = "Opção inválida!\n" + TEXTO_MENU_PRINCIPAL;
                 proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
