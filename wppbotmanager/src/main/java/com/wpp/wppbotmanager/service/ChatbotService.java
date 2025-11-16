@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Map;
 
 @Service
@@ -185,6 +187,18 @@ public class ChatbotService {
                 DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 LocalDate dataInicial = LocalDate.now().withDayOfMonth(1);
                 LocalDate dataFinal = LocalDate.now();
+                String dataInicialFormatada = dataInicial.format(formatador);
+                String dataFinalFormatada = dataFinal.format(formatador);
+                enviarResumoService.enviarRelatorio(numUser, 0, dataInicialFormatada, dataFinalFormatada, reportRequest);
+                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
+            case "MES_ANTERIOR_RESUMO" -> {
+                DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate hoje = LocalDate.now();
+                LocalDate mesAnterior = hoje.minusMonths(1);
+                LocalDate dataInicial = mesAnterior.withDayOfMonth(1);
+                LocalDate dataFinal = mesAnterior.with(TemporalAdjusters.lastDayOfMonth());
                 String dataInicialFormatada = dataInicial.format(formatador);
                 String dataFinalFormatada = dataFinal.format(formatador);
                 enviarResumoService.enviarRelatorio(numUser, 0, dataInicialFormatada, dataFinalFormatada, reportRequest);
