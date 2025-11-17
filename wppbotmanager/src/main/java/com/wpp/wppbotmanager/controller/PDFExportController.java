@@ -18,9 +18,8 @@ public class PDFExportController {
     private PDFGenerationService pdfService;
 
     @PostMapping("/export/relatorio-financeiro")
-    public ResponseEntity<byte[]> exportPdf(@RequestBody OmieDTO.OmieApiRequest request) { // Renomeado para 'request' para clareza
+    public ResponseEntity<byte[]> exportPdf(@RequestBody OmieDTO.OmieApiRequest request) {
         try {
-            // CORRIGIDO: Passa o objeto DTO inteiro para o serviço
             byte[] pdfBytes = pdfService.gerarRelatorioFinanceiroPdf(request);
 
             HttpHeaders headers = new HttpHeaders();

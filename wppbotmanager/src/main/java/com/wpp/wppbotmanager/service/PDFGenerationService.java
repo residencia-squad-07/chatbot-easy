@@ -21,7 +21,6 @@ public class PDFGenerationService {
         this.webClient = webClient;
     }
 
-    // CORRIGIDO: O método agora recebe o DTO OmieApiRequest
     public byte[] gerarRelatorioFinanceiroPdf(OmieDTO.OmieApiRequest request) throws JRException {
         RelatorioFinanceiroModel dadosFinanceiros = buscarDadosFinanceiros(request);
 
@@ -42,7 +41,6 @@ public class PDFGenerationService {
         return JasperExportManager.exportReportToPdf(jasperPrint);
     }
 
-    // CORRIGIDO: O método recebe o DTO e o usa para montar a requisição
     private RelatorioFinanceiroModel buscarDadosFinanceiros(OmieDTO.OmieApiRequest request) {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
