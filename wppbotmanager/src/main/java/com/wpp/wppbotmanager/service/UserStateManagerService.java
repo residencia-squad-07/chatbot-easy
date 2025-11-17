@@ -12,6 +12,7 @@ import java.util.Map;
 
 @Component
 public class UserStateManagerService {
+    public static final String PRIMEIRO_CONTATO = "PRIMEIRO_CONTATO";
     public static final String MENU_PRINCIPAL = "MENU_PRINCIPAL";
     private final Cache userStateCache;
     public static final String INSERINDO_DATA_INICIO = "INSERINDO_DATA_INICIO";
@@ -52,7 +53,7 @@ public class UserStateManagerService {
     public String getState(String numUser) {
         String state = userStateCache.get(numUser, String.class);
         if(state == null) {
-            return MENU_PRINCIPAL;
+            return PRIMEIRO_CONTATO;
         }
         return state;
     }

@@ -32,7 +32,7 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_RESUMO =
             """
-                    > *Escolha um intervalo:*
+                    > *Resumo Financeiro - Escolha um intervalo:*
                     
                     1️⃣ - *7 dias*
                     2️⃣ - *15 dias*
@@ -44,7 +44,7 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_RELATORIO =
             """
-                    > *Escolha um intervalo:*
+                    > *Relatório Financeiro - Escolha um intervalo:*
                     
                     1️⃣ - *7 dias*
                     2️⃣ - *15 dias*
@@ -56,7 +56,7 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_GESTAO_USUARIOS =
             """     
-                    > *Escolha uma opção:*
+                    > *Gestão de Usuários - Escolha uma opção:*
                     
                     1️⃣ - *Cadastrar usuários*
                     2️⃣ - *Listar usuários*
@@ -106,6 +106,8 @@ public class ChatbotService {
         String resposta = "";
 
         switch (estadoAtual) {
+            case UserStateManagerService.PRIMEIRO_CONTATO -> proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
+
             case UserStateManagerService.MENU_PRINCIPAL -> {
                 if ("3".equals(textInput)) {
                     if ("administrador".equalsIgnoreCase(request.getPapel())) {
@@ -117,7 +119,7 @@ public class ChatbotService {
                         return;
                     }
                 } else {
-                    proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, UserStateManagerService.MENU_PRINCIPAL);
+                    proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, "ESTADO_INVALIDO");
                 }
             }
 
@@ -157,11 +159,16 @@ public class ChatbotService {
         }
 
         switch (proximoEstado) {
+            case UserStateManagerService.PRIMEIRO_CONTATO -> {
+                resposta = TEXTO_MENU_PRINCIPAL;
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
+
             case UserStateManagerService.MENU_PRINCIPAL -> resposta = TEXTO_MENU_PRINCIPAL;
 
             case "SAIR" -> {
                 messageService.sendMessage(numUser, "Obrigado pelo contato!");
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
             }
 
             case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
