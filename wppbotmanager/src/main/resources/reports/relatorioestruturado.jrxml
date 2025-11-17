@@ -64,9 +64,13 @@
 				<textElement>
 					<font size="23"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Relatório " + 
-($P{DIAS_ANALISADOS}.intValue() == 7 ? "Semanal" : 
- ($P{DIAS_ANALISADOS}.intValue() == 15 ? "Quinzenal" : "Mensal"))]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($P{DIAS_ANALISADOS}.intValue() == 7 ? "Relatório Semanal" : 
+    ($P{DIAS_ANALISADOS}.intValue() == 15 ? "Relatório Quinzenal" : 
+        (
+            ($P{DIAS_ANALISADOS}.intValue() >= 28 && $P{DIAS_ANALISADOS}.intValue() <= 31) ? "Relatório Mensal" : "Relatório"
+        )
+    )
+)]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>
@@ -260,7 +264,7 @@
 				<text><![CDATA[Indicadores de Desempenho]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="210" y="31" width="238" height="44" uuid="02a6d682-9eae-4612-b131-086b579eac7b"/>
+				<reportElement x="220" y="30" width="180" height="44" uuid="02a6d682-9eae-4612-b131-086b579eac7b"/>
 				<textElement>
 					<font size="16"/>
 				</textElement>
@@ -274,14 +278,14 @@ Resultado Operacional]]></text>
 				<reportElement x="210" y="72" width="385" height="1" uuid="385601c9-caa9-4f64-83f6-ff519e742f9e"/>
 			</line>
 			<textField pattern="¤#,##0.##;¤-#,##0.##">
-				<reportElement x="448" y="30" width="146" height="22" uuid="3b410251-5ab6-4e76-b9c5-8f7008790bbe"/>
+				<reportElement x="380" y="29" width="209" height="22" uuid="3b410251-5ab6-4e76-b9c5-8f7008790bbe"/>
 				<textElement textAlignment="Right">
 					<font size="16"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{v_despesas_fixas}]]></textFieldExpression>
 			</textField>
 			<textField pattern="¤#,##0.##;¤-#,##0.##">
-				<reportElement x="448" y="51" width="146" height="21" uuid="dc26b6c1-a61d-4798-885b-85e0a86fe0cb"/>
+				<reportElement x="380" y="51" width="209" height="21" uuid="dc26b6c1-a61d-4798-885b-85e0a86fe0cb"/>
 				<textElement textAlignment="Right">
 					<font size="16"/>
 				</textElement>

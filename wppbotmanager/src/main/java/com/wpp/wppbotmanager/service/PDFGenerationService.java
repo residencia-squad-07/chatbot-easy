@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,13 +29,18 @@ public class PDFGenerationService {
 
         InputStream jasperStream = this.getClass().getResourceAsStream("/reports/relatorioestruturado.jasper");
         InputStream imageStream = getClass().getResourceAsStream("/images/logo.png");
-        Integer diasAnalisados = request.getDias();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        
+        LocalDate dataInicio = LocalDate.parse(dadosFinanceiros.getResumoGeral().getPeriodoAnalisado().getData_inicio(), formatter);
+        LocalDate dataFim = LocalDate.parse(dadosFinanceiros.getResumoGeral().getPeriodoAnalisado().getData_fim(), formatter);
+        long diasAnalisados = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("resumoGeral", dadosFinanceiros.getResumoGeral());
         parameters.put("detalhesPorCategoria", dadosFinanceiros.getDetalhesPorCategoria());
         parameters.put("Logo_Imagem", imageStream);
-        parameters.put("DIAS_ANALISADOS", diasAnalisados);
+        parameters.put("DIAS_ANALISADOS", (int) diasAnalisados);
 
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(Collections.singletonList(dadosFinanceiros));
 
@@ -45,9 +53,10 @@ public class PDFGenerationService {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/omie/relatorio-financeiro")
-                        .queryParam("dias", request.getDias())
+                        .queryParam("data_inicio", request.getDataInicio())
+                        .queryParam("data_fim", request.getDataFim())
                         .build())
-                .bodyValue(request) // Envia o objeto inteiro no corpo
+                .bodyValue(request)
                 .retrieve()
                 .bodyToMono(RelatorioFinanceiroModel.class)
                 .block();
