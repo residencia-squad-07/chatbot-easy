@@ -60,6 +60,10 @@ export async function gerarRelatorioFinanceiroGeralController(req: Request, res:
         dataInicio = tempInicio;
         dataFim = tempFim;
         
+        if (dataFim.getTime() < dataInicio.getTime()) {
+            return res.status(400).json({ error: 'A data final não pode ser menor que a data inicial.' });
+        }
+
         dataFim.setUTCHours(23, 59, 59, 999);
     
     } else if ((mes_passado as string)?.toLowerCase() === 'true') {
@@ -69,6 +73,11 @@ export async function gerarRelatorioFinanceiroGeralController(req: Request, res:
         
     } else {
         const diasNum = parseInt(dias as string) || 1825; 
+
+        if (diasNum <= 0) {
+            return res.status(400).json({ error: 'O número de dias deve ser positivo.' });
+        }
+
         dataFim = new Date(agoraUTC.getTime());
         dataFim.setUTCHours(23, 59, 59, 999); 
         dataInicio = new Date(agoraUTC.getTime());
