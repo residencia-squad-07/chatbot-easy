@@ -3,7 +3,6 @@ package com.wpp.wppbotmanager.service;
 import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -67,7 +66,8 @@ public class ChatbotService {
     private static final Map<String, String> MAPA_MENU_PRINCIPAL = Map.of(
             "1", "SUBMENU_RESUMO",
             "2", "SUBMENU_RELATORIO",
-            "3", "SUBMENU_GESTAO_USUARIOS"
+            "3", "SUBMENU_GESTAO_USUARIOS",
+            "0", "SAIR"
     );
 
     private static final Map<String, String> MAPA_MENU_RESUMO = Map.of(
@@ -106,7 +106,7 @@ public class ChatbotService {
         String resposta = "";
 
         switch (estadoAtual) {
-            case UserStateManagerService.MENU_PRINCIPAL:
+            case UserStateManagerService.MENU_PRINCIPAL -> {
                 if ("3".equals(textInput)) {
                     if ("administrador".equalsIgnoreCase(request.getPapel())) {
                         proximoEstado = "SUBMENU_GESTAO_USUARIOS";
@@ -119,79 +119,71 @@ public class ChatbotService {
                 } else {
                     proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, UserStateManagerService.MENU_PRINCIPAL);
                 }
-                break;
+            }
 
-            case "SUBMENU_RESUMO":
-                proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
-                if ("6".equals(textInput)) {
-                    messageService.sendMessage(numUser, "Por favor, insira a data inicial (formato DD/MM/AAAA):");
-                    proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
-                } else if ("0".equals(textInput)) {
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                }
-                break;
+            case "SUBMENU_RESUMO" -> proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
 
-            case "SUBMENU_RELATORIO":
-                proximoEstado = MAPA_MENU_RELATORIO.getOrDefault(textInput, "ESTADO_INVALIDO");
-                break;
-
-            case "SUBMENU_GESTAO_USUARIOS":
-                proximoEstado = MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
-                break;
-
-            case UserStateManagerService.INSERINDO_DATA_INICIO:
+            case UserStateManagerService.INSERINDO_DATA_INICIO -> {
                 userStateManager.setTempValue(numUser, "dataInicio", textInput);
                 messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
                 messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA):");
                 proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
-                break;
+            }
 
-            case UserStateManagerService.INSERINDO_DATA_FIM:
+            case UserStateManagerService.INSERINDO_DATA_FIM -> {
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
                 messageService.sendMessage(numUser, "Data final registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
-                break;
+            }
 
-            case UserStateManagerService.AGUARDANDO_CONTINUACAO:
+            case "SUBMENU_RELATORIO" -> proximoEstado = MAPA_MENU_RELATORIO.getOrDefault(textInput, "ESTADO_INVALIDO");
+
+            case "SUBMENU_GESTAO_USUARIOS" -> proximoEstado = MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
+
+            case UserStateManagerService.AGUARDANDO_CONTINUACAO -> {
                 if ("sim".equalsIgnoreCase(textInput) || "s".equalsIgnoreCase(textInput)) {
                     proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
                 } else if ("nao".equalsIgnoreCase(textInput) || "n".equalsIgnoreCase(textInput) || "não".equalsIgnoreCase(textInput)) {
-                    resposta = "Entendido. Obrigado pelo contato!";
+                    messageService.sendMessage(numUser, "Entendido. Obrigado pelo contato!");
                     userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
                     return;
                 } else {
                     resposta = "Desculpe, não entendi. Deseja continuar? (Sim/Não)";
                     proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
                 }
-                break;
+            }
 
-            default:
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            default -> proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
         }
 
         switch (proximoEstado) {
             case UserStateManagerService.MENU_PRINCIPAL -> resposta = TEXTO_MENU_PRINCIPAL;
+
+            case "SAIR" -> {
+                messageService.sendMessage(numUser, "Obrigado pelo contato!");
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
 
             case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
 
             case "7_DIAS_RESUMO" -> {
                 messageService.sendMessage(numUser, "Gerando resumo de 7 dias...");
                 enviarResumoService.enviarRelatorio(numUser, 7, null, null, reportRequest);
-                messageService.sendMessage(numUser, "Pronto! O resumo de 7 dias foi enviado. Deseja algo?");
+                messageService.sendMessage(numUser, "Pronto! O resumo de 7 dias foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
 
             case "15_DIAS_RESUMO" -> {
                 messageService.sendMessage(numUser, "Gerando resumo de 15 dias...");
                 enviarResumoService.enviarRelatorio(numUser, 15, null, null, reportRequest);
-                messageService.sendMessage(numUser, "Pronto! O resumo de 15 dias foi enviado. Deseja algo?");
+                messageService.sendMessage(numUser, "Pronto! O resumo de 15 dias foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
 
             case "30_DIAS_RESUMO" -> {
                 messageService.sendMessage(numUser, "Gerando resumo de 30 dias...");
                 enviarResumoService.enviarRelatorio(numUser, 30, null, null, reportRequest);
-                messageService.sendMessage(numUser, "Pronto! O resumo de 30 dias foi enviado. Deseja algo?");
+                messageService.sendMessage(numUser, "Pronto! O resumo de 30 dias foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
 
@@ -219,18 +211,22 @@ public class ChatbotService {
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
 
-            case "GERANDO_RESUMO_PERSONALIZADO" -> {
+            case "PERSONALIZADO_RESUMO" -> {
+                resposta = "Por favor, insira a data inicial (formato DD/MM/AAAA):";
+                proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
+            }
+
+            case UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO -> {
                 String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
                 String dataFim = (String) userStateManager.getTempValue(numUser, "dataFim");
                 if (dataInicio == null || dataFim == null) {
                     messageService.sendMessage(numUser, "Erro: datas não encontradas. Tente novamente.");
                     proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                    break;
+                } else {
+                    enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
+                    messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + " foi enviado. Deseja algo mais?");
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
                 }
-                enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
-                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + "foi enviado. Deseja algo mais?");
-                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
-
             }
 
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
