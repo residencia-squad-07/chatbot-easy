@@ -5,6 +5,7 @@ import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Map;
 
@@ -226,10 +227,15 @@ public class ChatbotService {
             case UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO -> {
                 String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
                 String dataFim = (String) userStateManager.getTempValue(numUser, "dataFim");
-                if (dataInicio == null || dataFim == null) {
-                    messageService.sendMessage(numUser, "Erro: datas não encontradas. Tente novamente.");
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                } else {
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate inicio = LocalDate.parse(dataInicio, fmt);
+                LocalDate fim = LocalDate.parse(dataFim, fmt);
+                long diff = ChronoUnit.DAYS.between(inicio, fim);
+                if(diff < 0){
+                    resposta = "A data final é menor que a inicial. Por favor, insira novamente a data inicial (formato DD/MM/AAAA).";
+                    proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
+                }
+                else {
                     enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
                     messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + " foi enviado. Deseja algo mais?");
                     proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
