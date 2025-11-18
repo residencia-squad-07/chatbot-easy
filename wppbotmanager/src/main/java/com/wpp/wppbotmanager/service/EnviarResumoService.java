@@ -3,6 +3,7 @@ package com.wpp.wppbotmanager.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
+import lombok.Getter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,6 +14,9 @@ import java.util.Map;
 
 public class EnviarResumoService {
     private final MessageService messageService;
+    @Getter
+    private int totalDias;
+
     public EnviarResumoService(MessageService messageService) {
         this.messageService = messageService;
     }
@@ -89,7 +93,7 @@ public class EnviarResumoService {
                 JsonNode jsonResponse = objectMapper.readTree(response);
                 JsonNode resumo = jsonResponse.path("resumo_geral");
                 JsonNode periodo = resumo.path("periodo_analisado");
-                int totalDias = periodo.path("total_dias").asInt(0);
+                this.totalDias = periodo.path("total_dias").asInt(0);
                 String data_inicio = periodo.path("data_inicio").asText("");
                 String data_fim = periodo.path("data_fim").asText("");
                 String totalReceitas = resumo.path("total_receitas").asText("");
@@ -116,6 +120,10 @@ public class EnviarResumoService {
                         "Investimentos: " + cat.path("investimentos").asText("") + "\n" +
                         "Parcelamentos: " + cat.path("parcelamentos").asText("") + "\n" +
                         "Saídas Não Operacionais: " + cat.path("saidas_nao_operacionais").asText("") + "\n";
+
+                if (totalDias < 0) {
+                    out = "";
+                }
                 messageService.sendMessage(numUser, out);
 
             } catch (Exception e) {
