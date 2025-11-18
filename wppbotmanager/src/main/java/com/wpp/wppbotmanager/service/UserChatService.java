@@ -7,6 +7,8 @@ import com.wpp.wppbotmanager.dto.UserDto;
 import com.wpp.wppbotmanager.dto.enums.atividade.Atividade;
 import com.wpp.wppbotmanager.dto.enums.papel.Papel;
 import org.springframework.stereotype.Service;
+import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
+
 @Service
 public class UserChatService {
 
@@ -17,31 +19,9 @@ public class UserChatService {
     private String etapaCriacao = "";
     private UserDto usuarioTemp = null;
 
-
     public UserChatService(UserBd userBD, MessageService messageService) {
         this.userBD = userBD;
         this.messageService = messageService;
-    }
-
-    public void criarUsuario(String numUser, String input, String idEmpresa) {
-        try {
-            UserDto usuario = new UserDto();
-            usuario.setId_empresa(Integer.parseInt(idEmpresa));
-            usuario.setNome("Usuario Teste");
-            usuario.setTelefone("5511999999999");
-            usuario.setPapel(Papel.funcionario);
-            usuario.setFirst_contact(null);
-
-            // Log do payload
-            System.out.println("Payload createUser: " + mapper.writeValueAsString(usuario));
-
-            userBD.createUser(usuario);
-            messageService.sendMessage(numUser, "Usuário pré-definido criado com sucesso!");
-        } catch (NumberFormatException nfe) {
-            messageService.sendMessage(numUser, "ID da empresa inválido: " + idEmpresa);
-        } catch (Exception e) {
-            messageService.sendMessage(numUser, "Erro ao criar usuário: " + e.getMessage());
-        }
     }
 
     public void listarUsuarios(String numUser, Integer idEmpresa) {
@@ -77,6 +57,23 @@ public class UserChatService {
             messageService.sendMessage(numUser, resposta);
         } catch (Exception e) {
             messageService.sendMessage(numUser, "Erro ao deletar usuário: " + e.getMessage());
+        }
+    }
+
+    public String salvarUsuario(UserDto usuario) {
+        try {
+            return userBD.createUser(usuario);
+        } catch (Exception e) {
+            throw new RuntimeException("Falha ao salvar usuário: " + e.getMessage(), e);
+        }
+    }
+
+    public String toJson(UserDto usuario) {
+        try {
+            return mapper.writeValueAsString(usuario);
+        } catch (Exception e) {
+            System.err.println("Falha ao serializar UserDto: " + e.getMessage());
+            return "{}";
         }
     }
 }

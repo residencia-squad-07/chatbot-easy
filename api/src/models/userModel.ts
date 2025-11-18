@@ -13,8 +13,14 @@ export interface Usuario {
 
 const createUsuario = async ({ nome, telefone, papel, atividade, id_empresa, primeiro_contato = 2 }: Usuario) => {
   const [{ insertId }]: any = await connection.execute(
-    `INSERT INTO Usuario (nome, telefone, papel, atividade, id_empresa, primeiro_contato) VALUES (?, ?, ?, ?, ?, ?)`,
-    [nome, telefone ?? null, papel, atividade, id_empresa ?? null, primeiro_contato]
+    `INSERT INTO Usuario (nome, telefone, papel, id_empresa, primeiro_contato) VALUES (?, ?, ?, ?, ?)`,
+    [
+      nome,
+      telefone ?? null,
+      papel,
+      id_empresa ?? null,
+      primeiro_contato
+    ]
   )
   return insertId
 }
