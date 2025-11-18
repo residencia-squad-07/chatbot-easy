@@ -12,7 +12,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {
 
-  private Integer id_user;
+
   private String nome;
   private String telefone;
   private Papel papel;
@@ -22,8 +22,8 @@ public class UserDto {
 
   public UserDto() {}
 
-  public UserDto(Integer id_user, String nome, String telefone, Papel papel, Atividade atividade, Integer id_empresa, first_contact.First_Contact first_contact) {
-    this.id_user = id_user;
+  public UserDto(String nome, String telefone, Papel papel, Atividade atividade, Integer id_empresa, first_contact.First_Contact first_contact) {
+  
     this.nome = nome;
     this.telefone = telefone;
     this.atividade = atividade;

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.wpp.wppbotmanager.dto.UserDto;
+import reactor.core.publisher.Mono;
 
 @Component
 public class UserBd {
@@ -26,13 +27,24 @@ public class UserBd {
   }
   
   public String createUser(UserDto userDto) {
-      return userTb.post()
-          .uri("/cuser")
-          .bodyValue(userDto)
-          .retrieve()
-          .bodyToMono(String.class)
-          .doOnError(e -> System.err.println("Erro ao criar usuário: " + e.getMessage()))
-          .block();
+    return userTb.post()
+        .uri("/cuser")
+        .bodyValue(userDto)
+        .exchangeToMono(response -> {
+            if (response.statusCode().is2xxSuccessful()) {
+                return response.bodyToMono(String.class);
+            } else {
+                return response.bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .flatMap(body -> {
+                        String errorMsg = "Erro ao criar usuário: status=" + response.statusCode() + 
+                                         " | body=" + body;
+                        System.err.println(errorMsg);
+                        return Mono.error(new RuntimeException(errorMsg));
+                    });
+            }
+        })
+        .block();
   }
 
   public String updateUser(Integer id, UserDto userDto) {
@@ -72,4 +84,12 @@ public class UserBd {
           .doOnError(e -> System.err.println("Erro ao buscar usuário por id: " + e.getMessage()))
           .block();
   }
+  public String getUsuariosByEmpresa(Integer idEmpresa) {
+    return userTb.get()
+        .uri("/euser/{id_empresa}", idEmpresa)
+        .retrieve()
+        .bodyToMono(String.class)
+        .doOnError(e -> System.err.println("Erro ao buscar usuários da empresa: " + e.getMessage()))
+        .block();
+}
 }

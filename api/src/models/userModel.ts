@@ -40,7 +40,7 @@ const getRoleByNumber = async (telefone: String): Promise<number | null> => {
 
 const getUsuarioById = async (id: number) => {
   const [[usuario]]: any = await connection.execute(
-    'SELECT * FROM Usuario WHERE id_user = ?',
+    'SELECT * FROM Usuario WHERE id_empresa = ?',
     [id]
   )
   return usuario || null

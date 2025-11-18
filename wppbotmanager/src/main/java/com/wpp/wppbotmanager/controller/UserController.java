@@ -3,10 +3,6 @@ package com.wpp.wppbotmanager.controller;
 import org.springframework.web.bind.annotation.*;
 import com.wpp.wppbotmanager.dto.UserDto;
 import com.wpp.wppbotmanager.service.UserService;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
 
 @RestController
@@ -47,5 +43,9 @@ public class UserController {
   @GetMapping("/guser/{id}")
   public String getUserById(@PathVariable Integer id) {
       return userService.getUserById(id);
+  }
+  @GetMapping("/euser/{id_empresa}")
+    public String getUsuariosByEmpresa(@PathVariable Integer id_empresa) {
+      return userService.getUsuariosByEmpresa(id_empresa);
   }
 }

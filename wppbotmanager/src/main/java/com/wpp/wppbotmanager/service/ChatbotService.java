@@ -16,10 +16,12 @@ public class ChatbotService {
     private final UserStateManagerService userStateManager;
     private final MessageService messageService;
     private final EnviarResumoService enviarResumoService;
+    private final UserChatService userChatService;
 
-    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService) {
+    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, UserChatService userChatService) {
         this.userStateManager = userStateManager;
         this.messageService = messageService;
+        this.userChatService = userChatService;
         this.enviarResumoService = new EnviarResumoService(messageService);
     }
 
@@ -217,6 +219,16 @@ public class ChatbotService {
                 enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
                 messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
                 proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
+            case "CADASTRAR_USUARIOS" -> {
+                userChatService.criarUsuario(numUser, textInput, request.getId_empresa());
+                resposta = "Processo iniciado! Vamos criar o usuário.";
+            }
+
+            case "LISTAR_USUARIOS" -> {
+            userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
+            userStateManager.setState(numUser, "SUBMENU_GESTAO_USUARIOS");
+            resposta = "Usuarios Listados!";
             }
             case "ESTADO_INVALIDO" -> {
                 resposta = "Opção inválida!\n" + TEXTO_MENU_PRINCIPAL;
