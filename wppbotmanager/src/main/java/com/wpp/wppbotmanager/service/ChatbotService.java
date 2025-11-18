@@ -148,7 +148,7 @@ public class ChatbotService {
                     proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
                 } else if ("nao".equalsIgnoreCase(textInput) || "n".equalsIgnoreCase(textInput) || "não".equalsIgnoreCase(textInput)) {
                     messageService.sendMessage(numUser, "Entendido. Obrigado pelo contato!");
-                    userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
+                    userStateManager.setState(numUser, UserStateManagerService.PRIMEIRO_CONTATO);
                     return;
                 } else {
                     resposta = "Desculpe, não entendi. Deseja continuar? (Sim/Não)";
