@@ -14,8 +14,8 @@
 	<queryString language="jsonql">
 		<![CDATA[]]>
 	</queryString>
-	<variable name="v_margem_lucro_liquido" class="java.lang.Double">
-		<variableExpression><![CDATA[$P{resumoGeral}.getTotal_receitas_numerico() == 0 ? 0.0 : $P{resumoGeral}.getResultado_liquido_numerico() / $P{resumoGeral}.getTotal_receitas_numerico()]]></variableExpression>
+	<variable name="v_despesas_fixas" class="java.lang.Double">
+		<variableExpression><![CDATA[$P{detalhesPorCategoria}.getDespesas_com_pessoal_numerico() + $P{detalhesPorCategoria}.getDespesas_administrativas_numerico() + $P{detalhesPorCategoria}.getPro_labore_numerico()]]></variableExpression>
 	</variable>
 	<variable name="v_custos_variaveis_num" class="java.lang.Double">
 		<variableExpression><![CDATA[$P{detalhesPorCategoria}.getCustos_variaveis_numerico()]]></variableExpression>
@@ -25,6 +25,9 @@
 	</variable>
 	<variable name="v_taxa_despesas" class="java.lang.Double">
 		<variableExpression><![CDATA[$P{resumoGeral}.getTotal_receitas_numerico() == 0 ? 0.0 : $P{resumoGeral}.getTotal_despesas_custos_numerico() / $P{resumoGeral}.getTotal_receitas_numerico()]]></variableExpression>
+	</variable>
+	<variable name="v_resultado_operacional" class="java.lang.Double">
+		<variableExpression><![CDATA[$P{detalhesPorCategoria}.getReceitas_operacionais_numerico() -  $P{detalhesPorCategoria}.getCustos_variaveis_numerico() -  $P{detalhesPorCategoria}.getDespesas_com_pessoal_numerico() -  $P{detalhesPorCategoria}.getDespesas_administrativas_numerico() -  $P{detalhesPorCategoria}.getPro_labore_numerico()]]></variableExpression>
 	</variable>
 	<background>
 		<band splitType="Stretch"/>
@@ -131,7 +134,7 @@
 				<reportElement x="1" y="16" width="800" height="1" forecolor="#808080" uuid="6014b331-17cd-4b4d-9269-e205087a1cd7"/>
 			</line>
 			<staticText>
-				<reportElement x="295" y="20" width="210" height="30" uuid="62b222d1-5332-492d-8f34-a52f56f349df"/>
+				<reportElement x="295" y="22" width="210" height="30" uuid="62b222d1-5332-492d-8f34-a52f56f349df"/>
 				<textElement textAlignment="Center">
 					<font size="18" isBold="true"/>
 				</textElement>
@@ -177,7 +180,7 @@
 				<reportElement x="120" y="193" width="560" height="1" uuid="eacad7f1-d37c-4c42-a146-d24e4468824a"/>
 			</line>
 			<line>
-				<reportElement x="-9" y="227" width="800" height="1" forecolor="#808080" uuid="a41f64bc-cae2-420b-8720-63935f7c14ea"/>
+				<reportElement x="-9" y="237" width="800" height="1" forecolor="#808080" uuid="a41f64bc-cae2-420b-8720-63935f7c14ea"/>
 			</line>
 			<textField>
 				<reportElement x="515" y="51" width="164" height="18" uuid="ef498b1e-423f-45f8-aea7-0638fe8d1c18"/>
@@ -247,50 +250,42 @@
 	<pageFooter>
 		<band height="102" splitType="Stretch">
 			<rectangle>
-				<reportElement x="230" y="14" width="349" height="58" uuid="b4aae9da-c8d7-4567-81db-ecc306aee113"/>
+				<reportElement x="210" y="30" width="385" height="42" uuid="b4aae9da-c8d7-4567-81db-ecc306aee113"/>
 			</rectangle>
 			<staticText>
-				<reportElement x="275" y="-21" width="250" height="30" uuid="c1eb130f-da9b-4894-ba33-50e4b468cdc3"/>
+				<reportElement x="275" y="-8" width="250" height="30" uuid="c1eb130f-da9b-4894-ba33-50e4b468cdc3"/>
 				<textElement textAlignment="Center">
 					<font size="18" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Indicadores de Desempenho]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="236" y="15" width="235" height="60" uuid="02a6d682-9eae-4612-b131-086b579eac7b"/>
+				<reportElement x="210" y="31" width="238" height="44" uuid="02a6d682-9eae-4612-b131-086b579eac7b"/>
 				<textElement>
-					<font size="14"/>
+					<font size="16"/>
 				</textElement>
-				<text><![CDATA[Margem de Lucro Líquido
-Margem de Contribuição 
-Taxa de Despesas sobre Receitas ]]></text>
+				<text><![CDATA[Despesas Fixas
+Resultado Operacional]]></text>
 			</staticText>
 			<line>
-				<reportElement x="230" y="34" width="349" height="1" uuid="39abe0b9-39b2-4213-8b6e-3da3de83f9c7"/>
+				<reportElement x="210" y="51" width="385" height="1" uuid="39abe0b9-39b2-4213-8b6e-3da3de83f9c7"/>
 			</line>
 			<line>
-				<reportElement x="231" y="52" width="347" height="1" uuid="385601c9-caa9-4f64-83f6-ff519e742f9e"/>
+				<reportElement x="210" y="72" width="385" height="1" uuid="385601c9-caa9-4f64-83f6-ff519e742f9e"/>
 			</line>
-			<textField pattern="#,##0.00%">
-				<reportElement x="515" y="35" width="62" height="18" uuid="b2c3d4e5-f6a7-8901-2345-67890abcdef1"/>
+			<textField pattern="¤#,##0.##;¤-#,##0.##">
+				<reportElement x="448" y="30" width="146" height="22" uuid="3b410251-5ab6-4e76-b9c5-8f7008790bbe"/>
 				<textElement textAlignment="Right">
-					<font size="12"/>
+					<font size="16"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{v_margem_contribuicao}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$V{v_despesas_fixas}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00%">
-				<reportElement x="515" y="17" width="62" height="18" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef"/>
+			<textField pattern="¤#,##0.##;¤-#,##0.##">
+				<reportElement x="448" y="51" width="146" height="21" uuid="dc26b6c1-a61d-4798-885b-85e0a86fe0cb"/>
 				<textElement textAlignment="Right">
-					<font size="12"/>
+					<font size="16"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{v_margem_lucro_liquido}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.00%">
-				<reportElement x="515" y="53" width="62" height="18" uuid="c3d4e5f6-a7b8-9012-3456-7890abcdef12"/>
-				<textElement textAlignment="Right">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$V{v_taxa_despesas}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$V{v_resultado_operacional}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>
