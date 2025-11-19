@@ -46,7 +46,7 @@ const getRoleByNumber = async (telefone: String): Promise<number | null> => {
 
 const getUsuarioById = async (id: number) => {
   const [[usuario]]: any = await connection.execute(
-    'SELECT * FROM Usuario WHERE id_empresa = ?',
+    'SELECT * FROM Usuario WHERE id_user = ?',
     [id]
   )
   return usuario || null
@@ -105,6 +105,14 @@ const marcarPrimeiroContato = async (telefone: string) => {
   return affectedRows > 0 
 }
 
+const marcarUsuarioInativo = async (id: number) => {
+  const [{ affectedRows }]: any = await connection.execute(
+    "UPDATE Usuario SET atividade = 'inativo' WHERE id_user = ?",
+    [id]
+  )
+  return affectedRows
+}
+
 export default {
   createUsuario,
   getAllUsuarios,
@@ -114,5 +122,6 @@ export default {
   getUsuarioByNumber,
   getRoleByNumber,
   getUsuariosByEmp,
-  marcarPrimeiroContato
+  marcarPrimeiroContato,
+  marcarUsuarioInativo
 }

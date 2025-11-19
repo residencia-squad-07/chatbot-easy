@@ -76,4 +76,13 @@ public class UserChatService {
             return "{}";
         }
     }
+
+    public void marcarUsuarioInativo(String numUser, Integer idUser) {
+        try {
+            String resposta = userBD.marcarUsuarioInativo(idUser);
+
+        } catch (Exception e) {
+            messageService.sendMessage(numUser, "Erro ao marcar usuário como inativo: " + e.getMessage());
+        }
+    }
 }

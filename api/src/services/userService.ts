@@ -26,6 +26,33 @@ const getUsuariosByEmp = async (id_empresa: number) => {
     status: 200,
   };
 };
+const marcarUsuarioInativo = async (id: number) => {
+  const usuario = await userModel.getUsuarioById(id);
+
+  if (!usuario) {
+    return {
+      type: 'error',
+      message: 'Usuário não encontrado',
+      status: 404
+    };
+  }
+
+  const affectedRows = await userModel.marcarUsuarioInativo(id);
+
+  if (affectedRows === 0) {
+    return {
+      type: 'error',
+      message: 'Falha ao atualizar usuário',
+      status: 400
+    };
+  }
+
+  return {
+    type: null,
+    message: 'Usuário marcado como inativo com sucesso',
+    status: 200
+  };
+};
 
 const getUserById = async (id:number) => {
     const userById =  await userModel.getUsuarioById(id);
@@ -138,5 +165,6 @@ export default {
     updateUsuario,
     getUsuariosByEmp,
     getUsuarioByTelefone,
-    marcarPrimeiroContato
+    marcarPrimeiroContato,
+    marcarUsuarioInativo
 }

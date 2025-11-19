@@ -92,4 +92,12 @@ public class UserBd {
         .doOnError(e -> System.err.println("Erro ao buscar usuários da empresa: " + e.getMessage()))
         .block();
 }
+public String marcarUsuarioInativo(Integer id) {
+    return userTb.put()
+        .uri("/marcarinativo/{id}", id)
+        .retrieve()
+        .bodyToMono(String.class)
+        .doOnError(e -> System.err.println("Erro ao marcar usuário como inativo: " + e.getMessage()))
+        .block();
+}
 }

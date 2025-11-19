@@ -140,6 +140,10 @@ public class ChatbotService {
                     messageService.sendMessage(numUser, "Digite o telefone do usuário (ex: 5511999999999):");
                     return;
                 case "telefone":
+                if (!textInput.matches("\\d{11}")) {
+                    messageService.sendMessage(numUser, "Telefone inválido. Digite exatamente 11 números.");
+                    return;
+                }
                     temp.setTelefone(textInput);
                     try {
                             System.out.println("Payload createUser: " + userChatService.toJson(temp));
@@ -277,6 +281,25 @@ public class ChatbotService {
                 messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
                 proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
             }
+             case "DELETAR_USUARIOS" -> {
+                userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
+                resposta = "Digite o ID do usuário para marcar como inativo:";
+                proximoEstado = UserStateManagerService.AGUARDAR_ID_DELETAR;
+                userStateManager.setState(numUser, proximoEstado);
+            }
+            case UserStateManagerService.AGUARDAR_ID_DELETAR -> {
+            try {
+                Integer idEscolhido = Integer.parseInt(textInput.trim());
+                userChatService.marcarUsuarioInativo(numUser, idEscolhido);
+                messageService.sendMessage(numUser, "Usuário marcado como inativo!");
+                userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
+                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+            } catch (NumberFormatException e) {
+                messageService.sendMessage(numUser, "ID inválido. Digite somente números.");
+            }
+                return;
+            }
+
             case "LISTAR_USUARIOS" -> {
                 userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
                 userStateManager.setState(numUser, "SUBMENU_GESTAO_USUARIOS");

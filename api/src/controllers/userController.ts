@@ -100,6 +100,20 @@ const marcarPrimeiroContato = async (req: Request, res: Response) => {
   }
 }
 
+const marcarUsuarioInativo = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const nId = Number(id);
+
+  const { type, message, status } = await userService.marcarUsuarioInativo(nId);
+
+  if (type) {
+    return res.status(status).json({ message });
+  }
+
+  return res.status(status).json({ message });
+};
+
+
 export default {
     criarUsuario,
     listarUsuarios,
@@ -108,5 +122,7 @@ export default {
     getUsuarioById,
     getUsuariosByEmp,
     getUsuarioByTelefone,
-    marcarPrimeiroContato
+    marcarPrimeiroContato,
+    marcarUsuarioInativo
+    
 }

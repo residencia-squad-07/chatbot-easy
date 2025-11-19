@@ -40,4 +40,8 @@ public class UserService {
   public String getUsuariosByEmpresa(Integer idEmpresa) {
       return userBd.getUsuariosByEmpresa(idEmpresa);
   }
+
+  public String marcarUsuarioInativo(Integer id) {
+      return userBd.marcarUsuarioInativo(id);
+  }
 }
