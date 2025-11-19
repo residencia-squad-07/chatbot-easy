@@ -12,9 +12,18 @@ public class AgendBd {
 
     public AgendBd(WebClient.Builder builder) {
     this.agendBd = builder
-      .baseUrl("http://localhost:3001/Agendamento")
+      .baseUrl("http://localhost:3001/agend")
       .build();
   }
+
+    public AgendamentoDto[] getAgendAsDto() {
+        return agendBd.get()
+                .uri("/lagend")
+                .retrieve()
+                .bodyToMono(AgendamentoDto[].class)
+                .doOnError(e -> System.err.println("Erro ao chamar API TS: " + e.getMessage()))
+                .block();
+    }
 
   public String getAgend() {
     return agendBd.get()
@@ -60,6 +69,15 @@ public class AgendBd {
           .retrieve()
           .bodyToMono(String.class)
           .doOnError(e -> System.err.println("Erro ao buscar agendamento por id: " + e.getMessage()))
+          .block();
+  }
+
+  public String getAgendByUserId(Integer id_user) {
+      return agendBd.get()
+          .uri("/gagendui/{id_user}", id_user)
+          .retrieve()
+          .bodyToMono(String.class)
+          .doOnError(e -> System.err.println("Erro ao buscar agendamento por id_user: " + e.getMessage()))
           .block();
   }
 }

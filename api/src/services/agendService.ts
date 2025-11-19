@@ -26,6 +26,22 @@ const getAgendById = async (id: number) => {
   }
 }
 
+const getAgendByUserId = async (id_user: number) => {
+  const agendByUserId = await agendModel.getAgendByUserId(id_user);
+  if(!agendByUserId) {
+    return {
+      type: 'error',
+      message: 'Agendamento não foi encontrado',
+      status: 404
+    }
+  }
+  return {
+    type: null,
+    message: agendByUserId,
+    status: 200
+  }
+}
+
 const createAgend = async (agend: Agendamentos) => {
   const validateAgend = schemas.agendSchema.validate(agend);
   if(validateAgend.error) {
@@ -91,6 +107,7 @@ const deleteAgend = async (id: number) => {
 export default {
   getAllAgend,
   getAgendById,
+  getAgendByUserId,
   createAgend,
   updateAgend,
   deleteAgend

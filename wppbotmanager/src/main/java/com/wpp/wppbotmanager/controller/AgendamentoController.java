@@ -21,12 +21,17 @@ public class AgendamentoController {
   }
 
   @GetMapping("/lagend")
-  public String getAdmin() {
+  public String getAgend() {
     return agendService.getAgend();
   }
 
   @PostMapping("/cagend")
-    public String postAdmin(@RequestBody LocalDate data_solicitacao, @RequestBody LocalDate proxima_execucao, @RequestBody Integer status, @RequestBody Integer id_usuario){
-        return agendService.postAgend(data_solicitacao, proxima_execucao, status, id_usuario);
+  public String postAgend(@RequestBody LocalDate data_solicitacao, @RequestBody LocalDate proxima_execucao, @RequestBody Integer status, @RequestBody Integer id_usuario){
+      return agendService.postAgend(data_solicitacao, proxima_execucao, status, id_usuario);
     }
+
+  @GetMapping("/gagendui/:id_user")
+  public String getAgendByUserId(Integer id_user) {
+      return agendService.getAgendByUserId(id_user);
+  }
 }

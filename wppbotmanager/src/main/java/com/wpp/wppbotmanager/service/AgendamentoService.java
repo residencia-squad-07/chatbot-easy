@@ -28,4 +28,8 @@ public class AgendamentoService {
       return "erro ao criar Agendamento: " + e.getMessage();
     }
   }
+
+  public String getAgendByUserId(Integer id_user) {
+      return agendBd.getAgendByUserId(id_user);
+  }
 }

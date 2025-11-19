@@ -7,5 +7,6 @@ router.get("/gagend/:id", agendController.getAgendById);
 router.post("/cagend", agendController.createAgend);
 router.put("/uagend/:id", agendController.updateAgend);
 router.delete("/dagend/:id", agendController.deleteAgend);
+router.get("/gagendui/:id_user", agendController.getAgendByUserId);
 
 export default router;

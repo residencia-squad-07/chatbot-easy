@@ -16,9 +16,20 @@ const getAgendById = async (req: Request, res: Response) => {
   return res.status(status).json(message)
 }
 
+const getAgendByUserId = async (req: Request, res: Response) => {
+  const { id_user } = req.params;
+  const nId = Number(id_user)
+  const { type, message, status } = await agendService.getAgendByUserId(nId);
+  if (type) {
+  return res.status(status).json({ message })
+  }
+  return res.status(status).json(message)
+}
+
 const createAgend = async (req: Request, res: Response) => { 
-  const configErp = req.body;
-  const { type, message, status } = await agendService.createAgend(configErp);
+  console.log("BODY RECEBIDO PELO NODE:", JSON.stringify(req.body, null, 2));
+  const agend = req.body;
+  const { type, message, status } = await agendService.createAgend(agend);
   if (type) {
     return res.status(status).json({ message });
   }
@@ -28,8 +39,8 @@ const createAgend = async (req: Request, res: Response) => {
 const updateAgend = async (req: Request, res: Response) => {
   const { id } = req.params;
   const nId = Number(id)
-  const userAdmin = req.body;
-  const { type, message, status } = await agendService.updateAgend(nId, userAdmin);
+  const agend = req.body;
+  const { type, message, status } = await agendService.updateAgend(nId, agend);
   if (type) {
     return res.status(status).json({ message });
   }
@@ -49,6 +60,7 @@ const deleteAgend = async (req: Request, res: Response) => {
 export default {
   getAllAgend,
   getAgendById,
+  getAgendByUserId,
   createAgend,
   updateAgend,
   deleteAgend

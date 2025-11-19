@@ -12,6 +12,7 @@ import { Boom } from "@hapi/boom";
 import { addMensagem } from "../models/messageModel";
 import moment from "moment-timezone";
 import Usuario from "../models/userModel"
+import Agendamentos from "../models/agendModel";
 
 let globalSock: ReturnType<typeof makeWASocket> | null = null;
 
@@ -79,12 +80,15 @@ export async function connectToWhatsApp() {
 
     const zona = "America/Sao_Paulo";
     const usuario = await Usuario.getUsuarioByNumber(senderNumber);
+
     addMensagem({
       id: msg.key.id,
       from: senderNumber,
       nome: msg.pushName || "Desconhecido",
       status: usuario?.atividade || "Desconhecido",
       papel: usuario?.papel || "Desconhecido",
+      primeiro_contato: usuario?.primeiro_contato || "Desconhecido",
+      id_user: usuario?.id_user || "Desconhecido",
       texto: textoMensagem || "",
       data : moment().tz(zona).format("DD-MM-YYYY"),
       hora : moment().tz(zona).format("HH:mm")

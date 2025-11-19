@@ -8,6 +8,7 @@ export interface Usuario {
   atividade: number
   id_empresa?: number | null
   primeiro_contato?: number
+  id_user: number
 }
 
 

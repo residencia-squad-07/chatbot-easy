@@ -18,12 +18,14 @@ public class MessageServiceAuto {
 
     private final MessageService messageService;
     private final ChatbotService chatbotService;
+    private final AgendAutoService agendAutoService;
     private final ObjectMapper mapper = new ObjectMapper();
     private final Set<String> mensagensProcessadas = new HashSet<>();
 
-    public MessageServiceAuto(MessageService messageService, ChatbotService chatbotService) {
+    public MessageServiceAuto(MessageService messageService, ChatbotService chatbotService, AgendAutoService agendAutoService) {
         this.messageService = messageService;
         this.chatbotService = chatbotService;
+        this.agendAutoService = agendAutoService;
     }
 
     public void processarMensagemIndividual(ReceiveMessageRequest msg) {
@@ -56,12 +58,14 @@ public class MessageServiceAuto {
             String papel = node.path("papel").asText("user");
             String nome = node.path("nome").asText(null);
             String primeiroContato = node.path("primeiro_contato").asText("nao");
+            Integer idUser = node.path("id_user").asInt(-1);
 
             System.out.println("[DEBUG] id_empresa: " + idEmpresa);
             System.out.println("[DEBUG] atividade: " + atividade);
             System.out.println("[DEBUG] papel: " + papel);
             System.out.println("[DEBUG] nome: " + nome);
             System.out.println("[DEBUG] primeiro_contato: " + primeiroContato);
+            System.out.println("[DEBUG] id_user: " + idUser);
 
             // Preenche DTO
             msg.setId_empresa(idEmpresa);
@@ -69,7 +73,24 @@ public class MessageServiceAuto {
             msg.setPapel(papel);
             msg.setNome(nome);
             msg.setPrimeiro_contato(primeiroContato);
+            msg.setId_user(idUser);
 
+            if("nao".equalsIgnoreCase(primeiroContato)) {
+                System.out.println("[DEBUG] Marcando primeiro_contato como SIM...");
+
+                try {
+                    RestTemplate updateClient = new RestTemplate();
+                    updateClient.put(
+                            "http://localhost:3001/users/pcontato/" + numUser,
+                            null
+                    );
+                    System.out.println("[DEBUG] primeiro_contato atualizado!");
+
+                    agendAutoService.criarAgendamento(idUser);
+                } catch (Exception e) {
+                    System.out.println("[DEBUG] Erro ao atualizar primeiro_contato: " + e.getMessage());
+                }
+            }
             // Fluxo
             if ("ativo".equalsIgnoreCase(atividade)) {
                 ReceiveReportRequest report = new ReceiveReportRequest();
@@ -89,7 +110,7 @@ public class MessageServiceAuto {
             chatbotService.unknownUser(numUser);
         }
     }
-    
+
     @Scheduled(fixedRate = 1000)
     public void processarMensagensAutomaticamente() {
         try {
