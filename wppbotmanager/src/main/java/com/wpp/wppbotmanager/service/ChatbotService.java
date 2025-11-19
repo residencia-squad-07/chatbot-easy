@@ -3,10 +3,9 @@ package com.wpp.wppbotmanager.service;
 import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Map;
 
@@ -25,45 +24,51 @@ public class ChatbotService {
 
     private static final String TEXTO_MENU_PRINCIPAL =
             """
-                    Olá, bem-vindo ao atendimento do Chatbot Easy!
-                    Escolha uma opção:\s
-                    1️⃣ - Resumo
-                    2️⃣ - Relatório
-                    3️⃣ - Gestão de Usuários""";
+                    > Olá, sou o Chatbot Easy! O que você gostaria de fazer?
+                    
+                    1️⃣ - *Visualizar Resumo Financeiro (na Tela)*
+                    2️⃣ - *Gerar Relatório Financeiro (PDF)*
+                    3️⃣ - *Gerenciar Usuários da Plataforma*
+                    0️⃣ - *Sair*""";
 
     private static final String TEXTO_MENU_RESUMO =
             """
-                    Escolha um intervalo:
-                    1️⃣ - 7 dias
-                    2️⃣ - 15 dias
-                    3️⃣ - 30 dias
-                    4️⃣ - Mês atual
-                    5️⃣ - Mês anterior
-                    6️⃣ - Personalizado
-                    0️⃣ - Voltar""";
+                    > *Resumo Financeiro - Escolha um intervalo:*
+                    
+                    1️⃣ - *7 dias*
+                    2️⃣ - *15 dias*
+                    3️⃣ - *30 dias*
+                    4️⃣ - *Mês atual*
+                    5️⃣ - *Mês anterior*
+                    6️⃣ - *Personalizado*
+                    0️⃣ - *Voltar*""";
 
     private static final String TEXTO_MENU_RELATORIO =
             """
-                    Escolha um intervalo:
-                    1️⃣ - 7 dias
-                    2️⃣ - 15 dias
-                    3️⃣ - 30 dias
-                    4️⃣ - Mês atual
-                    5️⃣ - Mês anterior
-                    6️⃣ - Personalizado
-                    0️⃣ - Voltar""";
+                    > *Relatório Financeiro - Escolha um intervalo:*
+                    
+                    1️⃣ - *7 dias*
+                    2️⃣ - *15 dias*
+                    3️⃣ - *30 dias*
+                    4️⃣ - *Mês atual*
+                    5️⃣ - *Mês anterior*
+                    6️⃣ - *Personalizado*
+                    0️⃣ - *Voltar*""";
 
     private static final String TEXTO_MENU_GESTAO_USUARIOS =
-            """
-                    1️⃣ - Cadastrar usuários
-                    2️⃣ - Listar usuários
-                    3️⃣ - Deletar usuários
-                    0️⃣ - Voltar""";
+            """     
+                    > *Gestão de Usuários - Escolha uma opção:*
+                    
+                    1️⃣ - *Cadastrar usuários*
+                    2️⃣ - *Listar usuários*
+                    3️⃣ - *Deletar usuários*
+                    0️⃣ - *Voltar*""";
 
     private static final Map<String, String> MAPA_MENU_PRINCIPAL = Map.of(
             "1", "SUBMENU_RESUMO",
             "2", "SUBMENU_RELATORIO",
-            "3", "SUBMENU_GESTAO_USUARIOS"
+            "3", "SUBMENU_GESTAO_USUARIOS",
+            "0", "SAIR"
     );
 
     private static final Map<String, String> MAPA_MENU_RESUMO = Map.of(
@@ -92,14 +97,7 @@ public class ChatbotService {
             "3", "DELETAR_USUARIOS",
             "0", UserStateManagerService.MENU_PRINCIPAL
     );
-    public String analisarPapel(ReceiveMessageRequest request, String textInput) {
-        if ("administrador".equalsIgnoreCase(request.getPapel())) {
-            return MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
-        } else {
-            messageService.sendMessage(request.getFrom(), "Acesso negado.");
-            return "ACESSO_NEGADO";
-        }
-    }
+
     public void processMessage(ReceiveMessageRequest request, ReceiveReportRequest reportRequest) {
         String numUser = request.getFrom();
         String textInput = request.getTexto();
@@ -109,80 +107,94 @@ public class ChatbotService {
         String resposta = "";
 
         switch (estadoAtual) {
-            case UserStateManagerService.MENU_PRINCIPAL:
+            case UserStateManagerService.PRIMEIRO_CONTATO -> proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
+
+            case UserStateManagerService.MENU_PRINCIPAL -> {
                 if ("3".equals(textInput)) {
                     if ("administrador".equalsIgnoreCase(request.getPapel())) {
                         proximoEstado = "SUBMENU_GESTAO_USUARIOS";
                     } else {
-                        messageService.sendMessage(numUser, "Função apenas para administradores.");
+                        messageService.sendMessage(numUser, "O acesso a esta funcionalidade é restrito a usuários administradores.");
                         messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
                         userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
                         return;
                     }
                 } else {
-                    proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, UserStateManagerService.MENU_PRINCIPAL);
+                    proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, "ESTADO_INVALIDO");
                 }
-                break;
-            case "SUBMENU_RELATORIO":
-                proximoEstado = MAPA_MENU_RELATORIO.getOrDefault(textInput, "ESTADO_INVALIDO");
-                break;
-            case "SUBMENU_RESUMO":
-                proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
+            }
 
-                int diasResumo = switch (textInput) {
-                    case "1" -> 7;
-                    case "2" -> 15;
-                    case "3" -> 30;
-                    case "4" -> 4;
-                    case "5" -> 5;
-                    case "6" -> -1;
-                    default -> 0;
-                };
+            case "SUBMENU_RESUMO" -> proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
 
-                if (diasResumo == 4) {
-                    messageService.sendMessage(numUser, "Gerando resumo do mês atual...");
-                } else if (diasResumo == 5) {
-                    messageService.sendMessage(numUser, "Gerando resumo do mês anterior...");
-                } else if (diasResumo > 0) {
-                    messageService.sendMessage(numUser, "Gerando resumo de " + diasResumo + " dias...");
-                    enviarResumoService.enviarRelatorio(numUser, diasResumo,null, null, reportRequest);
-                    resposta = "";
-                } else if ("0".equals(textInput)) {
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                    resposta = TEXTO_MENU_PRINCIPAL;
-                } else if (diasResumo == -1) {
-                    messageService.sendMessage(numUser, "Por favor, insira a data início (formato DD/MM/AAAA):");
-                    proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
-                    break;
-                } else {
-                    resposta = "Opção inválida!\n" + TEXTO_MENU_RESUMO;
-                }
-                break;
-            case "SUBMENU_GESTAO_USUARIOS":
-                proximoEstado = analisarPapel(request, textInput);
-                break;
-            case UserStateManagerService.INSERINDO_DATA_INICIO:
+            case UserStateManagerService.INSERINDO_DATA_INICIO -> {
                 userStateManager.setTempValue(numUser, "dataInicio", textInput);
-                messageService.sendMessage(numUser, "Data início registrada: " + textInput);
-                messageService.sendMessage(numUser, "Por favor, insira a data fim:");
+                messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
+                messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA):");
                 proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
-                break;
+            }
 
-            case UserStateManagerService.INSERINDO_DATA_FIM:
-                messageService.sendMessage(numUser, "Por favor, insira a data fim (formato DD/MM/AAAA):");
+            case UserStateManagerService.INSERINDO_DATA_FIM -> {
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
-                messageService.sendMessage(numUser, "Data fim registrada: " + textInput);
+                messageService.sendMessage(numUser, "Data final registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
-                userStateManager.setState(numUser, proximoEstado);
-                break;
-            default:
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
+
+            case "SUBMENU_RELATORIO" -> proximoEstado = MAPA_MENU_RELATORIO.getOrDefault(textInput, "ESTADO_INVALIDO");
+
+            case "SUBMENU_GESTAO_USUARIOS" -> proximoEstado = MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
+
+            case UserStateManagerService.AGUARDANDO_CONTINUACAO -> {
+                if ("sim".equalsIgnoreCase(textInput) || "s".equalsIgnoreCase(textInput)) {
+                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                } else if ("nao".equalsIgnoreCase(textInput) || "n".equalsIgnoreCase(textInput) || "não".equalsIgnoreCase(textInput)) {
+                    messageService.sendMessage(numUser, "Entendido. Obrigado pelo contato!");
+                    userStateManager.setState(numUser, UserStateManagerService.PRIMEIRO_CONTATO);
+                    return;
+                } else {
+                    resposta = "Desculpe, não entendi. Deseja continuar? (Sim/Não)";
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+                }
+            }
+
+            default -> proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
         }
+
         switch (proximoEstado) {
+            case UserStateManagerService.PRIMEIRO_CONTATO -> {
+                resposta = TEXTO_MENU_PRINCIPAL;
+                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+            }
+
             case UserStateManagerService.MENU_PRINCIPAL -> resposta = TEXTO_MENU_PRINCIPAL;
+
+            case "SAIR" -> {
+                messageService.sendMessage(numUser, "Obrigado pelo contato!");
+                proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
+            }
+
             case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
-            case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
-            case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
+
+            case "7_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 7 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 7, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 7 dias foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "15_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 15 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 15, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 15 dias foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "30_DIAS_RESUMO" -> {
+                messageService.sendMessage(numUser, "Gerando resumo de 30 dias...");
+                enviarResumoService.enviarRelatorio(numUser, 30, null, null, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O resumo de 30 dias foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
             case "MES_ATUAL_RESUMO" -> {
                 DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 LocalDate dataInicial = LocalDate.now().withDayOfMonth(1);
@@ -190,9 +202,10 @@ public class ChatbotService {
                 String dataInicialFormatada = dataInicial.format(formatador);
                 String dataFinalFormatada = dataFinal.format(formatador);
                 enviarResumoService.enviarRelatorio(numUser, 0, dataInicialFormatada, dataFinalFormatada, reportRequest);
-                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                messageService.sendMessage(numUser, "Pronto! O resumo do mês atual foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
+
             case "MES_ANTERIOR_RESUMO" -> {
                 DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 LocalDate hoje = LocalDate.now();
@@ -202,35 +215,74 @@ public class ChatbotService {
                 String dataInicialFormatada = dataInicial.format(formatador);
                 String dataFinalFormatada = dataFinal.format(formatador);
                 enviarResumoService.enviarRelatorio(numUser, 0, dataInicialFormatada, dataFinalFormatada, reportRequest);
-                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                messageService.sendMessage(numUser, "Pronto! O resumo do mês anterior foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
-            case "ACESSO_NEGADO" -> { return; }
-            case "GERANDO_RESUMO_PERSONALIZADO" -> {
+
+            case "PERSONALIZADO_RESUMO" -> {
+                resposta = "Por favor, insira a data inicial (formato DD/MM/AAAA):";
+                proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
+            }
+
+            case UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO -> {
                 String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicio");
                 String dataFim = (String) userStateManager.getTempValue(numUser, "dataFim");
-                if (dataInicio == null || dataFim == null) {
-                    messageService.sendMessage(numUser, "Erro: datas não encontradas. Tente novamente.");
-                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                    break;
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate inicio = LocalDate.parse(dataInicio, fmt);
+                LocalDate fim = LocalDate.parse(dataFim, fmt);
+                long diff = ChronoUnit.DAYS.between(inicio, fim);
+                if(diff < 0){
+                    resposta = "A data final é menor que a inicial. Por favor, insira novamente a data inicial (formato DD/MM/AAAA).";
+                    proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
                 }
-                enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
-                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                else {
+                    enviarResumoService.enviarRelatorio(numUser,0, dataInicio, dataFim, reportRequest);
+                    messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + " foi enviado. Deseja algo mais?");
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+                }
             }
+
+            case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
+
+            case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
+
             case "ESTADO_INVALIDO" -> {
-                resposta = "Opção inválida!\n" + TEXTO_MENU_PRINCIPAL;
-                proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                resposta = "";
+                messageService.sendMessage(numUser, "Opção inválida!");
+                switch (estadoAtual) {
+                    case "SUBMENU_RESUMO" -> {
+                        messageService.sendMessage(numUser, TEXTO_MENU_RESUMO);
+                        proximoEstado = "SUBMENU_RESUMO";
+                    }
+
+                    case "SUBMENU_RELATORIO" -> {
+                        messageService.sendMessage(numUser, TEXTO_MENU_RELATORIO);
+                        proximoEstado = "SUBMENU_RELATORIO";
+                    }
+
+                    case "SUBMENU_GESTAO_USUARIOS" -> {
+                        messageService.sendMessage(numUser, TEXTO_MENU_GESTAO_USUARIOS);
+                        proximoEstado = "SUBMENU_GESTAO_USUARIOS";
+                    }
+
+                    default -> {
+                        messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                        proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                    }
+                }
             }
         }
+
         if (!resposta.isBlank()) {
             messageService.sendMessage(numUser, resposta);
         }
         userStateManager.setState(numUser, proximoEstado);
     }
+
     public void inactiveUser(String numUser) {
         messageService.sendMessage(numUser, "Contate um administrador para reativar seu acesso.");
     }
+
     public void unknownUser(String numUser) {
         messageService.sendMessage(numUser, "Usuário não encontrado. Contate um administrador.");
     }
