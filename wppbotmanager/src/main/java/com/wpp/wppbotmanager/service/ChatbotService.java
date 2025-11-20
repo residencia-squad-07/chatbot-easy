@@ -1,5 +1,6 @@
 package com.wpp.wppbotmanager.service;
 
+import com.wpp.wppbotmanager.dto.OmieDTO;
 import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,13 @@ public class ChatbotService {
     private final UserStateManagerService userStateManager;
     private final MessageService messageService;
     private final EnviarResumoService enviarResumoService;
+    private final PDFGenerationService pdfGenerationService;
 
-    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService) {
+    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, PDFGenerationService pdfGenerationService) {
         this.userStateManager = userStateManager;
         this.messageService = messageService;
         this.enviarResumoService = new EnviarResumoService(messageService);
+        this.pdfGenerationService = pdfGenerationService;
     }
 
     private static final String TEXTO_MENU_PRINCIPAL =
@@ -244,6 +247,22 @@ public class ChatbotService {
 
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
 
+            case "7_DIAS_RELATORIO" -> {
+                messageService.sendMessage(numUser, "Gerando relatório de 7 dias...");
+
+                LocalDate dataFim = LocalDate.now();
+                LocalDate dataInicio = dataFim.minusDays(6);
+
+                DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String dataInicioFormatada = dataInicio.format(formatadorApi);
+                String dataFimFormatada = dataFim.format(formatadorApi);
+
+                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+
+                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + " foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
             case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
 
             case "ESTADO_INVALIDO" -> {
@@ -277,6 +296,30 @@ public class ChatbotService {
             messageService.sendMessage(numUser, resposta);
         }
         userStateManager.setState(numUser, proximoEstado);
+    }
+
+    private void enviarRelatorioGerado(String numUser, String dataInicioFormatada, String dataFimFormatada, ReceiveReportRequest reportRequest) {
+        try {
+            String appKey = "5614700718627";
+            String appSecret = "2ae8328ce879960d99ba83e7986805a3";
+
+            OmieDTO.OmieApiRequest request = new OmieDTO.OmieApiRequest();
+            request.setAppKey(appKey);
+            request.setAppSecret(appSecret);
+            request.setDataInicio(dataInicioFormatada);
+            request.setDataFim(dataFimFormatada);
+
+            byte[] pdfBytes = pdfGenerationService.gerarRelatorioFinanceiroPdf(request);
+
+            if (pdfBytes.length > 0) {
+                System.out.println("PDF gerado e pronto para ser enviado.");
+            } else {
+                messageService.sendMessage(numUser, "Não foi possível gerar o relatório.");
+            }
+        } catch (Exception e) {
+            System.out.println("Não foi possivel montar o relatório por causa de :" + e.getMessage());
+            messageService.sendMessage(numUser,"Ocorreu um erro interno ao gerar o relatório.");
+        }
     }
 
     public void inactiveUser(String numUser) {
