@@ -311,8 +311,13 @@ public class ChatbotService {
 
             byte[] pdfBytes = pdfGenerationService.gerarRelatorioFinanceiroPdf(request);
 
-            if (pdfBytes.length > 0) {
-                System.out.println("PDF gerado e pronto para ser enviado.");
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                System.out.println("PDF gerado, preparando para enviar...");
+
+                String nomeArquivo = "Relatorio_" + dataInicioFormatada + "_a_" + dataFimFormatada + ".pdf";
+
+                messageService.sendDocument(numUser, pdfBytes, nomeArquivo);
+
             } else {
                 messageService.sendMessage(numUser, "Não foi possível gerar o relatório.");
             }
