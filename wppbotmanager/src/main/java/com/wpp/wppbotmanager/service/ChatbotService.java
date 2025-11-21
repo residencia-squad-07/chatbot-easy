@@ -1,13 +1,17 @@
 package com.wpp.wppbotmanager.service;
 
+import com.wpp.wppbotmanager.dto.UserDto;
 import com.wpp.wppbotmanager.dto.ReceiveMessageRequest;
 import com.wpp.wppbotmanager.dto.ReceiveReportRequest;
+import com.wpp.wppbotmanager.dto.enums.papel.Papel;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ChatbotService {
@@ -15,10 +19,15 @@ public class ChatbotService {
     private final UserStateManagerService userStateManager;
     private final MessageService messageService;
     private final EnviarResumoService enviarResumoService;
+    private final UserChatService userChatService;
 
-    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService) {
+    private final Map<String, String> criarEtapa = new ConcurrentHashMap<>();
+    private final Map<String, UserDto> criarTemp = new ConcurrentHashMap<>();
+
+    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, UserChatService userChatService) {
         this.userStateManager = userStateManager;
         this.messageService = messageService;
+        this.userChatService = userChatService;
         this.enviarResumoService = new EnviarResumoService(messageService);
     }
 
@@ -29,7 +38,7 @@ public class ChatbotService {
                     1️⃣ - *Visualizar Resumo Financeiro (na Tela)*
                     2️⃣ - *Gerar Relatório Financeiro (PDF)*
                     3️⃣ - *Gerenciar Usuários da Plataforma*
-                    0️⃣ - *Sair*""";
+                    0️⃣ - *Sair""";
 
     private static final String TEXTO_MENU_RESUMO =
             """
@@ -109,6 +118,55 @@ public class ChatbotService {
         switch (estadoAtual) {
             case UserStateManagerService.PRIMEIRO_CONTATO -> proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
 
+            case "CADASTRAR_USUARIOS" ->{
+                String etapa = criarEtapa.get(numUser);
+                if (etapa == null) {
+                    UserDto u = new UserDto();
+                    try {
+                        if (request.getId_empresa() != null && !request.getId_empresa().isEmpty())
+                            u.setId_empresa(Integer.parseInt(request.getId_empresa()));
+                    } catch (NumberFormatException ignored) {}
+                    u.setPapel(Papel.funcionario);
+                    criarTemp.put(numUser, u);
+                    criarEtapa.put(numUser, "nome");
+                    messageService.sendMessage(numUser, "Vamos criar um usuário. Digite o nome do usuário:");
+                    return;
+                }
+                UserDto temp = criarTemp.get(numUser);
+                switch (etapa) {
+                    case "nome":
+                        temp.setNome(textInput);
+                        criarEtapa.put(numUser, "telefone");
+                        messageService.sendMessage(numUser, "Digite o telefone do usuário (ex: 5511999999999):");
+                    case "telefone":
+                        if (!textInput.matches("\\d{11}")) {
+                            messageService.sendMessage(numUser, "Telefone inválido. Digite exatamente 11 números.");
+                        }
+                        temp.setTelefone(textInput);
+                        try {
+                            userChatService.salvarUsuario(temp);
+                            messageService.sendMessage(numUser, "Usuário criado com sucesso!");
+                        } catch (Exception e) {
+                            messageService.sendMessage(numUser, "Erro ao criar usuário: " + e.getMessage());
+                        } finally {
+                            criarEtapa.remove(numUser);
+                            criarTemp.remove(numUser);
+                            proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                            messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                            userStateManager.setState(numUser, proximoEstado);
+                        }
+                        return;
+                    default:
+                        criarEtapa.remove(numUser);
+                        criarTemp.remove(numUser);
+                        messageService.sendMessage(numUser, "Fluxo reiniciado.");
+                        proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                        messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                        userStateManager.setState(numUser, proximoEstado);
+                        return;
+                }
+            }
+
             case UserStateManagerService.MENU_PRINCIPAL -> {
                 if ("3".equals(textInput)) {
                     if ("administrador".equalsIgnoreCase(request.getPapel())) {
@@ -127,6 +185,16 @@ public class ChatbotService {
             case "SUBMENU_RESUMO" -> proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
 
             case UserStateManagerService.INSERINDO_DATA_INICIO -> {
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+                try {
+                    LocalDate.parse(textInput, fmt); // valida
+                } catch (Exception e) {
+                    messageService.sendMessage(numUser, "Data inválida. Use o formato DD/MM/AAAA.");
+                    proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
+                    return;
+                }
+
                 userStateManager.setTempValue(numUser, "dataInicio", textInput);
                 messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
                 messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA):");
@@ -134,6 +202,16 @@ public class ChatbotService {
             }
 
             case UserStateManagerService.INSERINDO_DATA_FIM -> {
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+                try {
+                    LocalDate.parse(textInput, fmt); // valida
+                } catch (Exception e) {
+                    messageService.sendMessage(numUser, "Data inválida. Use o formato DD/MM/AAAA.");
+                    proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
+                    return;
+                }
+
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
                 messageService.sendMessage(numUser, "Data final registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
@@ -245,6 +323,31 @@ public class ChatbotService {
             case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
 
             case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
+
+            case "DELETAR_USUARIOS" -> {
+                userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
+                resposta = "Digite o ID do usuário para marcar como inativo:";
+                proximoEstado = UserStateManagerService.AGUARDAR_ID_DELETAR;
+                userStateManager.setState(numUser, proximoEstado);
+            }
+
+            case UserStateManagerService.AGUARDAR_ID_DELETAR -> {
+                try {
+                    Integer idEscolhido = Integer.parseInt(textInput.trim());
+                    userChatService.marcarUsuarioInativo(numUser, idEscolhido);
+                    messageService.sendMessage(numUser, "Usuário marcado como inativo!");
+                    userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
+                    messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
+                } catch (NumberFormatException e) {
+                    messageService.sendMessage(numUser, "ID inválido. Digite somente números.");
+                }
+            }
+
+            case "LISTAR_USUARIOS" -> {
+                userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
+                userStateManager.setState(numUser, "SUBMENU_GESTAO_USUARIOS");
+                resposta = "Usuarios Listados!";
+            }
 
             case "ESTADO_INVALIDO" -> {
                 resposta = "";
