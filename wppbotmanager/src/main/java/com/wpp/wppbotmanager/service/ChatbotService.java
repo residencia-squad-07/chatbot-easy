@@ -140,10 +140,10 @@ public class ChatbotService {
                     messageService.sendMessage(numUser, "Digite o telefone do usuário (ex: 5511999999999):");
                     return;
                 case "telefone":
-                if (!textInput.matches("\\d{11}")) {
+                if (!textInput.matches("\\d{12}")) {
                     messageService.sendMessage(numUser, "Telefone inválido. Digite exatamente 11 números.");
-                    return;
-                }
+                    break;
+                }else{
                     temp.setTelefone(textInput);
                     try {
                             System.out.println("Payload createUser: " + userChatService.toJson(temp));
@@ -159,6 +159,8 @@ public class ChatbotService {
                             userStateManager.setState(numUser, proximoEstado);
                         }
                         return;
+                }
+
                 default:
                     criarEtapa.remove(numUser);
                     criarTemp.remove(numUser);
