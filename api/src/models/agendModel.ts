@@ -63,6 +63,35 @@ const updateAgendById = async (
   return affectedRows
 }
 
+const updateAgendProxExec = async (
+  id: number,
+  config: Partial<Agendamentos>
+) => {
+  const fields = ['proxima_execucao']
+
+  const { setClauses, values } = Object.entries(config).reduce(
+    (acc, [key, value]) => {
+      if (fields.includes(key)) {
+        acc.setClauses.push(`${key} = ?`)
+        acc.values.push(value)
+      }
+      return acc
+    },
+    { setClauses: [] as string[], values: [] as any[] }
+  )
+
+  if (setClauses.length === 0) {
+    throw new Error('Nenhum campo válido para atualização.')
+  }
+
+  const query = `UPDATE Agendamentos SET ${setClauses.join(', ')} WHERE id_agendamento = ?`
+  values.push(id)
+
+  const [result]: any = await connection.execute(query, values)
+  return result.affectedRows
+}
+
+
 const deleteAgend = async (id: number) => {
   const [{ affectedRows }]: any = await connection.execute(
     'DELETE FROM Agendamentos WHERE id = ?',
@@ -77,5 +106,6 @@ export default {
   getAgendById,
   getAgendByUserId,
   updateAgendById,
+  updateAgendProxExec,
   deleteAgend
 }

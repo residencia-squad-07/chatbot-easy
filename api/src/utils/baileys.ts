@@ -88,7 +88,7 @@ export async function connectToWhatsApp() {
       status: usuario?.atividade || "Desconhecido",
       papel: usuario?.papel || "Desconhecido",
       primeiro_contato: usuario?.primeiro_contato || "Desconhecido",
-      id_user: usuario?.id_user || "Desconhecido",
+      id_user: usuario?.id_user || null,
       texto: textoMensagem || "",
       data : moment().tz(zona).format("DD-MM-YYYY"),
       hora : moment().tz(zona).format("HH:mm")

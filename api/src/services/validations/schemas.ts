@@ -39,11 +39,16 @@ const agendSchema = joi.object({
   id_usuario: joi.number().optional()
 }).min(1);
 
+const agendUpdateSchema = joi.object({
+  prox_execucao: joi.string().optional()
+}).min(1);
+
 export default {
   adminSchema,
   configErpSchema,
   empresaSchema,
   solicitacaoSchema,
   usuarioSchema,
-  agendSchema
+  agendSchema,
+  agendUpdateSchema
 }

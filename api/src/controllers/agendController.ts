@@ -47,6 +47,17 @@ const updateAgend = async (req: Request, res: Response) => {
   return res.status(201).json({ message });
 }
 
+const updateAgendProxExec = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const nId = Number(id)
+  const agend = req.body;
+  const { type, message, status } = await agendService.updateAgendProxExec(nId, agend);
+  if (type) {
+    return res.status(status).json({ message });
+  }
+  return res.status(201).json({ message });
+}
+
 const deleteAgend = async (req: Request, res: Response) => {
   const { id } = req.params;
   const nId = Number(id)
@@ -63,5 +74,6 @@ export default {
   getAgendByUserId,
   createAgend,
   updateAgend,
+  updateAgendProxExec,
   deleteAgend
 }
