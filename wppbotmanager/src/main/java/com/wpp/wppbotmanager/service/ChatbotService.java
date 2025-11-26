@@ -21,14 +21,13 @@ public class ChatbotService {
     private final EnviarResumoService enviarResumoService;
     private final UserChatService userChatService;
 
-    private final Map<String, String> criarEtapa = new ConcurrentHashMap<>();
     private final Map<String, UserDto> criarTemp = new ConcurrentHashMap<>();
 
-    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, UserChatService userChatService) {
+    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, EnviarResumoService enviarResumoService,UserChatService userChatService) {
         this.userStateManager = userStateManager;
         this.messageService = messageService;
         this.userChatService = userChatService;
-        this.enviarResumoService = new EnviarResumoService(messageService);
+        this.enviarResumoService = enviarResumoService;
     }
 
     private static final String TEXTO_MENU_PRINCIPAL =
@@ -38,7 +37,7 @@ public class ChatbotService {
                     1️⃣ - *Visualizar Resumo Financeiro (na Tela)*
                     2️⃣ - *Gerar Relatório Financeiro (PDF)*
                     3️⃣ - *Gerenciar Usuários da Plataforma*
-                    0️⃣ - *Sair""";
+                    0️⃣ - *Sair*""";
 
     private static final String TEXTO_MENU_RESUMO =
             """
@@ -113,80 +112,16 @@ public class ChatbotService {
         String estadoAtual = userStateManager.getState(numUser);
         reportRequest.setIdEmpresa(request.getId_empresa());
         String proximoEstado;
-        String resposta = "";
 
         switch (estadoAtual) {
             case UserStateManagerService.PRIMEIRO_CONTATO -> proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
 
-            case "CADASTRAR_USUARIOS" ->{
-                String etapa = criarEtapa.get(numUser);
-                if (etapa == null) {
-                    UserDto u = new UserDto();
-                    try {
-                        if (request.getId_empresa() != null && !request.getId_empresa().isEmpty())
-                            u.setId_empresa(Integer.parseInt(request.getId_empresa()));
-                    } catch (NumberFormatException ignored) {}
-                    u.setPapel(Papel.funcionario);
-                    criarTemp.put(numUser, u);
-                    criarEtapa.put(numUser, "nome");
-                    messageService.sendMessage(numUser, "Vamos criar um usuário. Digite o nome do usuário:");
-                    return;
-                }
-                UserDto temp = criarTemp.get(numUser);
-                switch (etapa) {
-                    case "nome":
-                        temp.setNome(textInput);
-                        criarEtapa.put(numUser, "telefone");
-                        messageService.sendMessage(numUser, "Digite o telefone do usuário (ex: 5511999999999):");
-                    case "telefone":
-                        if (!textInput.matches("\\d{11}")) {
-                            messageService.sendMessage(numUser, "Telefone inválido. Digite exatamente 11 números.");
-                        }
-                        temp.setTelefone(textInput);
-                        try {
-                            userChatService.salvarUsuario(temp);
-                            messageService.sendMessage(numUser, "Usuário criado com sucesso!");
-                        } catch (Exception e) {
-                            messageService.sendMessage(numUser, "Erro ao criar usuário: " + e.getMessage());
-                        } finally {
-                            criarEtapa.remove(numUser);
-                            criarTemp.remove(numUser);
-                            proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                            messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                            userStateManager.setState(numUser, proximoEstado);
-                        }
-                        return;
-                    default:
-                        criarEtapa.remove(numUser);
-                        criarTemp.remove(numUser);
-                        messageService.sendMessage(numUser, "Fluxo reiniciado.");
-                        proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
-                        messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                        userStateManager.setState(numUser, proximoEstado);
-                        return;
-                }
-            }
-
-            case UserStateManagerService.MENU_PRINCIPAL -> {
-                if ("3".equals(textInput)) {
-                    if ("administrador".equalsIgnoreCase(request.getPapel())) {
-                        proximoEstado = "SUBMENU_GESTAO_USUARIOS";
-                    } else {
-                        messageService.sendMessage(numUser, "O acesso a esta funcionalidade é restrito a usuários administradores.");
-                        messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                        userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
-                        return;
-                    }
-                } else {
-                    proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, "ESTADO_INVALIDO");
-                }
-            }
+            case UserStateManagerService.MENU_PRINCIPAL -> proximoEstado = MAPA_MENU_PRINCIPAL.getOrDefault(textInput, "ESTADO_INVALIDO");
 
             case "SUBMENU_RESUMO" -> proximoEstado = MAPA_MENU_RESUMO.getOrDefault(textInput, "ESTADO_INVALIDO");
 
             case UserStateManagerService.INSERINDO_DATA_INICIO -> {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
                 try {
                     LocalDate.parse(textInput, fmt); // valida
                 } catch (Exception e) {
@@ -203,7 +138,6 @@ public class ChatbotService {
 
             case UserStateManagerService.INSERINDO_DATA_FIM -> {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
                 try {
                     LocalDate.parse(textInput, fmt); // valida
                 } catch (Exception e) {
@@ -211,7 +145,6 @@ public class ChatbotService {
                     proximoEstado = UserStateManagerService.INSERINDO_DATA_FIM;
                     return;
                 }
-
                 userStateManager.setTempValue(numUser, "dataFim", textInput);
                 messageService.sendMessage(numUser, "Data final registrada: " + textInput);
                 proximoEstado = UserStateManagerService.GERANDO_RESUMO_PERSONALIZADO;
@@ -221,6 +154,36 @@ public class ChatbotService {
 
             case "SUBMENU_GESTAO_USUARIOS" -> proximoEstado = MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
 
+            case UserStateManagerService.AGUARDAR_NOME_CADASTRO -> {
+                UserDto temp = criarTemp.get(numUser);
+                temp.setNome(textInput);
+                messageService.sendMessage(numUser, "Digite o telefone do usuário (ex: 551199999999):");
+                proximoEstado = UserStateManagerService.AGUARDAR_TELEFONE_CADASTRO;
+            }
+
+            case UserStateManagerService.AGUARDAR_TELEFONE_CADASTRO -> {
+                if (!textInput.matches("\\d{12}")) {
+                    messageService.sendMessage(numUser, "Telefone inválido. Digite exatamente 12 números.");
+                    proximoEstado = UserStateManagerService.AGUARDAR_TELEFONE_CADASTRO;
+                    return;
+                }
+                UserDto temp = criarTemp.get(numUser);
+                temp.setTelefone(textInput);
+                proximoEstado = UserStateManagerService.FINALIZAR_CADASTRO;
+            }
+
+            case UserStateManagerService.AGUARDAR_ID_DELETAR -> {
+                try {
+                    Integer idEscolhido = Integer.parseInt(textInput.trim());
+                    userChatService.marcarUsuarioInativo(numUser, idEscolhido);
+                    messageService.sendMessage(numUser, "Pronto! O usuário foi excluído. Deseja algo mais?");
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+                } catch (NumberFormatException e) {
+                    messageService.sendMessage(numUser, "ID inválido. Digite somente números:");
+                    proximoEstado = UserStateManagerService.AGUARDAR_ID_DELETAR;
+                }
+            }
+
             case UserStateManagerService.AGUARDANDO_CONTINUACAO -> {
                 if ("sim".equalsIgnoreCase(textInput) || "s".equalsIgnoreCase(textInput)) {
                     proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
@@ -229,7 +192,7 @@ public class ChatbotService {
                     userStateManager.setState(numUser, UserStateManagerService.PRIMEIRO_CONTATO);
                     return;
                 } else {
-                    resposta = "Desculpe, não entendi. Deseja continuar? (Sim/Não)";
+                    messageService.sendMessage(numUser, "Desculpe, não entendi. Deseja continuar? (Sim/Não)");
                     proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
                 }
             }
@@ -239,18 +202,13 @@ public class ChatbotService {
 
         switch (proximoEstado) {
             case UserStateManagerService.PRIMEIRO_CONTATO -> {
-                resposta = TEXTO_MENU_PRINCIPAL;
+                messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
                 proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
             }
 
-            case UserStateManagerService.MENU_PRINCIPAL -> resposta = TEXTO_MENU_PRINCIPAL;
+            case UserStateManagerService.MENU_PRINCIPAL -> messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
 
-            case "SAIR" -> {
-                messageService.sendMessage(numUser, "Obrigado pelo contato!");
-                proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
-            }
-
-            case "SUBMENU_RESUMO" -> resposta = TEXTO_MENU_RESUMO;
+            case "SUBMENU_RESUMO" -> messageService.sendMessage(numUser, TEXTO_MENU_RESUMO);
 
             case "7_DIAS_RESUMO" -> {
                 messageService.sendMessage(numUser, "Gerando resumo de 7 dias...");
@@ -298,7 +256,7 @@ public class ChatbotService {
             }
 
             case "PERSONALIZADO_RESUMO" -> {
-                resposta = "Por favor, insira a data inicial (formato DD/MM/AAAA):";
+                messageService.sendMessage(numUser, "Por favor, insira a data inicial (formato DD/MM/AAAA):");
                 proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
             }
 
@@ -310,7 +268,7 @@ public class ChatbotService {
                 LocalDate fim = LocalDate.parse(dataFim, fmt);
                 long diff = ChronoUnit.DAYS.between(inicio, fim);
                 if(diff < 0){
-                    resposta = "A data final é menor que a inicial. Por favor, insira novamente a data inicial (formato DD/MM/AAAA).";
+                    messageService.sendMessage(numUser, "A data final é menor que a inicial. Por favor, insira novamente a data inicial (formato DD/MM/AAAA):");
                     proximoEstado = UserStateManagerService.INSERINDO_DATA_INICIO;
                 }
                 else {
@@ -320,37 +278,61 @@ public class ChatbotService {
                 }
             }
 
-            case "SUBMENU_RELATORIO" -> resposta = TEXTO_MENU_RELATORIO;
+            case "SUBMENU_RELATORIO" -> messageService.sendMessage(numUser, TEXTO_MENU_RELATORIO);
 
-            case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
-
-            case "DELETAR_USUARIOS" -> {
-                userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
-                resposta = "Digite o ID do usuário para marcar como inativo:";
-                proximoEstado = UserStateManagerService.AGUARDAR_ID_DELETAR;
-                userStateManager.setState(numUser, proximoEstado);
+            case "SUBMENU_GESTAO_USUARIOS" -> {
+                if ("administrador".equalsIgnoreCase(request.getPapel())) {
+                    messageService.sendMessage(numUser, TEXTO_MENU_GESTAO_USUARIOS);
+                    proximoEstado = "SUBMENU_GESTAO_USUARIOS";
+                } else {
+                    messageService.sendMessage(numUser, "O acesso a esta funcionalidade é restrito a usuários administradores.");
+                    proximoEstado = UserStateManagerService.MENU_PRINCIPAL;
+                }
             }
 
-            case UserStateManagerService.AGUARDAR_ID_DELETAR -> {
+            case "CADASTRAR_USUARIOS" -> {
+                UserDto u = new UserDto();
                 try {
-                    Integer idEscolhido = Integer.parseInt(textInput.trim());
-                    userChatService.marcarUsuarioInativo(numUser, idEscolhido);
-                    messageService.sendMessage(numUser, "Usuário marcado como inativo!");
-                    userStateManager.setState(numUser, UserStateManagerService.MENU_PRINCIPAL);
-                    messageService.sendMessage(numUser, TEXTO_MENU_PRINCIPAL);
-                } catch (NumberFormatException e) {
-                    messageService.sendMessage(numUser, "ID inválido. Digite somente números.");
+                    if (request.getId_empresa() != null && !request.getId_empresa().isEmpty())
+                        u.setId_empresa(Integer.parseInt(request.getId_empresa()));
+                } catch (NumberFormatException ignored) {}
+                u.setPapel(Papel.funcionario);
+                criarTemp.put(numUser, u);
+                messageService.sendMessage(numUser, "Digite o nome do usuário:");
+                proximoEstado = UserStateManagerService.AGUARDAR_NOME_CADASTRO;
+            }
+
+            case UserStateManagerService.FINALIZAR_CADASTRO -> {
+                UserDto temp = criarTemp.get(numUser);
+                try {
+                    userChatService.salvarUsuario(temp);
+                    messageService.sendMessage(numUser, "Pronto! O usuário foi criado com sucesso. Deseja algo mais?");
+                } catch (Exception e) {
+                    messageService.sendMessage(numUser, "Erro ao criar usuário: " + e.getMessage());
+                } finally {
+                    criarTemp.remove(numUser);
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
                 }
             }
 
             case "LISTAR_USUARIOS" -> {
                 userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
-                userStateManager.setState(numUser, "SUBMENU_GESTAO_USUARIOS");
-                resposta = "Usuarios Listados!";
+                messageService.sendMessage(numUser, "Pronto! Os usuários foram listados. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "DELETAR_USUARIOS" -> {
+                userChatService.listarUsuarios(numUser, Integer.parseInt(request.getId_empresa()));
+                messageService.sendMessage(numUser, "Digite o ID do usuário que deseja excluir:");
+                proximoEstado = UserStateManagerService.AGUARDAR_ID_DELETAR;
+            }
+
+            case "SAIR" -> {
+                messageService.sendMessage(numUser, "Obrigado pelo contato!");
+                proximoEstado = UserStateManagerService.PRIMEIRO_CONTATO;
             }
 
             case "ESTADO_INVALIDO" -> {
-                resposta = "";
                 messageService.sendMessage(numUser, "Opção inválida!");
                 switch (estadoAtual) {
                     case "SUBMENU_RESUMO" -> {
@@ -374,10 +356,6 @@ public class ChatbotService {
                     }
                 }
             }
-        }
-
-        if (!resposta.isBlank()) {
-            messageService.sendMessage(numUser, resposta);
         }
         userStateManager.setState(numUser, proximoEstado);
     }
