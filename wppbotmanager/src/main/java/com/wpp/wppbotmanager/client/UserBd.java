@@ -72,4 +72,12 @@ public class UserBd {
           .doOnError(e -> System.err.println("Erro ao buscar usuário por id: " + e.getMessage()))
           .block();
   }
+
+    public UserDto getUserDtoById(Integer id) {
+        return userTb.get()
+                .uri("/guser/{id}", id)
+                .retrieve()
+                .bodyToMono(UserDto.class)
+                .block();
+    }
 }

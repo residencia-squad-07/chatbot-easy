@@ -87,7 +87,7 @@ const updateAgend = async (id: number, agend: Partial<Agendamentos>) => {
 }
 
 const updateAgendProxExec = async (id: number, agend: Partial<Agendamentos>) => {
-  const agendExists = await agendModel.getAgendById(id);
+  const agendExists = await agendModel.getAgendByUserId(id);
   if(!agendExists) {
     return {
       type: 'error',
@@ -108,7 +108,7 @@ const updateAgendProxExec = async (id: number, agend: Partial<Agendamentos>) => 
   await agendModel.updateAgendProxExec(id, agend);
   return {
     type: null,
-    message: 'Agendamento atualizado com sucesso',
+    message: 'Prox_exec atualizado com sucesso',
     status: 201
   } 
 }

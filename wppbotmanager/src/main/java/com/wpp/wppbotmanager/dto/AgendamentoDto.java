@@ -12,12 +12,12 @@ public class AgendamentoDto {
   private Integer id_agendamento;
   private LocalDate data_solicitacao;
   private LocalDate proxima_execucao;
-  private Integer status;
+  private String status;
   private Integer id_usuario;
 
   public AgendamentoDto () {}
 
-  public AgendamentoDto (Integer id_agendamento, LocalDate data_solicitacao, LocalDate proxima_execucao, Integer status, Integer id_usuario) {
+  public AgendamentoDto (Integer id_agendamento, LocalDate data_solicitacao, LocalDate proxima_execucao, String status, Integer id_usuario) {
     this.id_agendamento = id_agendamento;
     this.data_solicitacao = data_solicitacao;
     this.proxima_execucao = proxima_execucao;

@@ -1,9 +1,14 @@
 package com.wpp.wppbotmanager.client;
 
+import com.wpp.wppbotmanager.dto.AgendProxExecDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.wpp.wppbotmanager.dto.AgendamentoDto;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class AgendBd {
@@ -51,6 +56,20 @@ public class AgendBd {
           .retrieve()
           .bodyToMono(String.class)
           .doOnError(e -> System.err.println("Erro ao atualizar agendamento: " + e.getMessage()))
+          .block();
+  }
+
+  public String updateProxExec(Integer id, LocalDate novaData) {
+
+      Map<String, Object> body = new HashMap<>();
+      body.put("proxima_execucao", novaData.toString());
+
+      return agendBd.put()
+          .uri("/pproxecec/{id}", id)
+          .bodyValue(body)
+          .retrieve()
+          .bodyToMono(String.class)
+          .doOnError(e -> System.err.println("Erro ao atualizar proxima execucao: " + e.getMessage()))
           .block();
   }
 

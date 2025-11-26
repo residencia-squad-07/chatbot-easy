@@ -1,7 +1,9 @@
 package com.wpp.wppbotmanager.service;
 
 import com.wpp.wppbotmanager.client.AgendBd;
+import com.wpp.wppbotmanager.client.UserBd;
 import com.wpp.wppbotmanager.dto.AgendamentoDto;
+import com.wpp.wppbotmanager.dto.UserDto;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,37 +20,20 @@ public class AgendAutoService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final AgendBd agendBd;
+    private final MessageService messageService;
+    private final ChatbotService chatbotService;
+    private final MessageServiceAuto messageServiceAuto;
+    private final UserBd userBd;
 
-    public AgendAutoService(AgendBd agendBd) {
+    public AgendAutoService(AgendBd agendBd, MessageService messageService, ChatbotService chatbotService, MessageServiceAuto messageServiceAuto, UserBd userBd) {
         this.agendBd = agendBd;
+        this.messageService = messageService;
+        this.chatbotService = chatbotService;
+        this.messageServiceAuto = messageServiceAuto;
+        this.userBd = userBd;
     }
 
-    public void criarAgendamento(Integer idUser) {
-        System.out.println("[AGENDAMENTO] Criando agendamento pro user id: " + idUser);
-
-        try {
-            String url = "http://localhost:3001/agend/cagend";
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("id_usuario", idUser);
-            body.put("data_solicitacao", LocalDate.now().toString());
-            body.put("status", "ativo");
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            String resposta = restTemplate.postForObject(url, request, String.class);
-
-            System.out.println("[DEBUG] Agendamento criado com sucesso! Resposta Node: " + resposta);
-            System.out.println("[DEBUG] Agendamento criado com sucesso!");
-
-        } catch (Exception e) {
-            System.out.println("[AGENDAMENTO] Erro ao criar agendamento: " + e.getMessage());
-        }
-    }
-
-    @Scheduled(cron = "0 0 3 * * *") // as 3 da manha
+    @Scheduled(cron = "* * 3 * * *")
     public void enviarAgendamento() {
         System.out.println("[AGENDAMENTO] Enviando agendamento...");
 
@@ -58,46 +43,72 @@ public class AgendAutoService {
             System.out.println("[SCHEDULE] Nenhum agendamento encontrado.");
             return;
         }
+
         LocalDate hoje = LocalDate.now();
 
         for (AgendamentoDto ag : agendamentos) {
-            if (ag.getProxima_execucao() == null) continue;
 
-            // Verifica se HOJE é a data da execução
-            if (ag.getProxima_execucao().isEqual(hoje)) {
+            LocalDate prox = ag.getProxima_execucao();
+
+            // Caso seja NULL → ajusta para hoje e já segue
+            if (prox == null) {
+                System.out.println("[SCHEDULE] proxima_execucao NULL. Atualizando para hoje...");
+
+                LocalDate novaExecucao = hoje.plusWeeks(2);
+
+                // Atualiza no banco
+                String respostaNode = agendBd.updateProxExec(
+                        ag.getId_usuario(),
+                        novaExecucao
+                );
+
+                System.out.println("[SCHEDULE] proxima_execucao inicial definida como: " + novaExecucao);
+
+                // Executa ação agora
+                executarAcaoSemanal(ag.getId_usuario());
+
+                continue; // passa para o próximo
+            }
+
+            // Se já está vencida (igual ou menor que hoje)
+            if (!prox.isAfter(hoje)) {
 
                 System.out.println("[SCHEDULE] Executando agendamento ID: " + ag.getId_agendamento() +
                         " | Usuário: " + ag.getId_usuario());
 
-                // 1. EXECUTAR FUNÇÃO
+                // Executar ação do usuário
                 executarAcaoSemanal(ag.getId_usuario());
 
-                // 2. GERAR nova data
-                LocalDate novaExecucao = hoje.plusWeeks(1);
+                // Gerar nova data
+                LocalDate novaExecucao = hoje.plusWeeks(2);
 
-                // 3. Atualizar
-                AgendamentoDto updateDto = new AgendamentoDto(
-                        ag.getId_agendamento(),
-                        ag.getData_solicitacao(),
-                        novaExecucao,
-                        ag.getStatus(),
-                        ag.getId_usuario()
+                String respostaNode = agendBd.updateProxExec(
+                        ag.getId_usuario(),
+                        novaExecucao
                 );
-
-                String respostaNode = agendBd.updateAgend(ag.getId_agendamento(), updateDto);
 
                 System.out.println("[SCHEDULE] Próxima execução atualizada para: " + novaExecucao);
                 System.out.println("[SCHEDULE] Resposta Node: " + respostaNode);
             }
-
         }
-        System.out.println("[SCHEDULE] Verificação concluída.");
 
+        System.out.println("[SCHEDULE] Verificação concluída.");
     }
+
 
     private void executarAcaoSemanal(Integer idUsuario) {
         System.out.println("[AÇÃO SEMANAL] Enviando mensagem para usuário " + idUsuario);
 
+        UserDto user = userBd.getUserDtoById(idUsuario);
+
+        if (user == null || user.getTelefone() == null) {
+            System.out.println("[AÇÃO SEMANAL] Usuário sem telefone cadastrado.");
+            return;
+        }
+
+        String numero = user.getTelefone();
+        String texto = "ENVIADO PDF DE 15 DIAS!";
+        messageService.sendMessage(numero, texto);
         // chatbotService.sendAutomaticMessage(idUsuario);
         // messageService.sendMessage(numero, texto);
     }

@@ -40,7 +40,7 @@ const agendSchema = joi.object({
 }).min(1);
 
 const agendUpdateSchema = joi.object({
-  prox_execucao: joi.string().optional()
+  proxima_execucao: joi.string().optional()
 }).min(1);
 
 export default {

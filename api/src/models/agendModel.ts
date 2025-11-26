@@ -84,7 +84,7 @@ const updateAgendProxExec = async (
     throw new Error('Nenhum campo válido para atualização.')
   }
 
-  const query = `UPDATE Agendamentos SET ${setClauses.join(', ')} WHERE id_agendamento = ?`
+  const query = `UPDATE Agendamento SET ${setClauses.join(', ')} WHERE id_usuario = ?`
   values.push(id)
 
   const [result]: any = await connection.execute(query, values)

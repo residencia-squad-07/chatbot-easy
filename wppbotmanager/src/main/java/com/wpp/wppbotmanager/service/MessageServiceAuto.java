@@ -18,14 +18,14 @@ public class MessageServiceAuto {
 
     private final MessageService messageService;
     private final ChatbotService chatbotService;
-    private final AgendAutoService agendAutoService;
+    private final AgendamentoService agendamentoService;
     private final ObjectMapper mapper = new ObjectMapper();
     private final Set<String> mensagensProcessadas = new HashSet<>();
 
-    public MessageServiceAuto(MessageService messageService, ChatbotService chatbotService, AgendAutoService agendAutoService) {
+    public MessageServiceAuto(MessageService messageService, ChatbotService chatbotService, AgendamentoService agendamentoService) {
         this.messageService = messageService;
         this.chatbotService = chatbotService;
-        this.agendAutoService = agendAutoService;
+        this.agendamentoService = agendamentoService;
     }
 
     public void processarMensagemIndividual(ReceiveMessageRequest msg) {
@@ -86,7 +86,7 @@ public class MessageServiceAuto {
                     );
                     System.out.println("[DEBUG] primeiro_contato atualizado!");
 
-                    agendAutoService.criarAgendamento(idUser);
+                    agendamentoService.criarAgendamento(idUser);
                 } catch (Exception e) {
                     System.out.println("[DEBUG] Erro ao atualizar primeiro_contato: " + e.getMessage());
                 }
