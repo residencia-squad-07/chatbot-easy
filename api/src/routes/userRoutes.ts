@@ -9,8 +9,7 @@ router.delete("/duser/:id", userController.deleteUsuario);
 router.get("/guser/:id", userController.getUsuarioById);
 router.get("/euser/:id_empresa", userController.getUsuariosByEmp);
 router.get("/telefone/:telefone", userController.getUsuarioByTelefone);
-
-// Parte dos agendamentos
+router.put("/marcarinativo/:id", userController.marcarUsuarioInativo);
 router.put("/pcontato/:telefone", userController.marcarPrimeiroContato);
 
 
