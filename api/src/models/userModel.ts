@@ -2,12 +2,13 @@ import connection from '../db'
 
 
 export interface Usuario {
-    nome: string
-    telefone?: string | null
-    papel: number
-    atividade: number
-    id_empresa?: number | null
-    primeiro_contato?: number
+  nome: string
+  telefone?: string | null
+  papel: number
+  atividade: number
+  id_empresa?: number | null
+  primeiro_contato?: number
+  id_user: number
 }
 
 

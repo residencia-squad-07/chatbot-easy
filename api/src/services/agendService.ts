@@ -26,6 +26,22 @@ const getAgendById = async (id: number) => {
   }
 }
 
+const getAgendByUserId = async (id_user: number) => {
+  const agendByUserId = await agendModel.getAgendByUserId(id_user);
+  if(!agendByUserId) {
+    return {
+      type: 'error',
+      message: 'Agendamento não foi encontrado',
+      status: 404
+    }
+  }
+  return {
+    type: null,
+    message: agendByUserId,
+    status: 200
+  }
+}
+
 const createAgend = async (agend: Agendamentos) => {
   const validateAgend = schemas.agendSchema.validate(agend);
   if(validateAgend.error) {
@@ -70,6 +86,33 @@ const updateAgend = async (id: number, agend: Partial<Agendamentos>) => {
   } 
 }
 
+const updateAgendProxExec = async (id: number, agend: Partial<Agendamentos>) => {
+  const agendExists = await agendModel.getAgendByUserId(id);
+  if(!agendExists) {
+    return {
+      type: 'error',
+      message: 'Agendamento não foi encontrado',
+      status: 404
+    }
+  }
+
+  const validateAgend = schemas.agendUpdateSchema.validate(agend);
+  if(validateAgend.error) {
+    return {
+    type: 'error',
+    message: validateAgend.error.details[0].message,
+    status: 422
+    }
+  }
+
+  await agendModel.updateAgendProxExec(id, agend);
+  return {
+    type: null,
+    message: 'Prox_exec atualizado com sucesso',
+    status: 201
+  } 
+}
+
 const deleteAgend = async (id: number) => {
   const agendExists = await agendModel.getAgendById(id);
   if(!agendExists) {
@@ -91,7 +134,9 @@ const deleteAgend = async (id: number) => {
 export default {
   getAllAgend,
   getAgendById,
+  getAgendByUserId,
   createAgend,
   updateAgend,
+  updateAgendProxExec,
   deleteAgend
 }
