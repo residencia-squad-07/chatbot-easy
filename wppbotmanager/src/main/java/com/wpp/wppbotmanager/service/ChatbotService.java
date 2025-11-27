@@ -25,6 +25,10 @@ public class ChatbotService {
         this.pdfGenerationService = pdfGenerationService;
     }
 
+    private static final String INSERINDO_DATA_INICIO_RELATORIO = "INSERINDO_DATA_INICIO_RELATORIO";
+    private static final String INSERINDO_DATA_FIM_RELATORIO = "INSERINDO_DATA_FIM_RELATORIO";
+    private static final String GERANDO_RELATORIO_PERSONALIZADO = "GERANDO_RELATORIO_PERSONALIZADO";
+
     private static final String TEXTO_MENU_PRINCIPAL =
             """
                     > Olá, sou o Chatbot Easy! O que você gostaria de fazer?
@@ -144,6 +148,19 @@ public class ChatbotService {
 
             case "SUBMENU_RELATORIO" -> proximoEstado = MAPA_MENU_RELATORIO.getOrDefault(textInput, "ESTADO_INVALIDO");
 
+            case INSERINDO_DATA_INICIO_RELATORIO -> {
+                userStateManager.setTempValue(numUser, "dataInicioRelatorio", textInput);
+                messageService.sendMessage(numUser, "Data inicial registrada: " + textInput);
+                messageService.sendMessage(numUser, "Por favor, insira a data final (formato DD/MM/AAAA):");
+                proximoEstado = INSERINDO_DATA_FIM_RELATORIO;
+            }
+
+            case INSERINDO_DATA_FIM_RELATORIO -> {
+                userStateManager.setTempValue(numUser, "dataFimRelatorio", textInput);
+                messageService.sendMessage(numUser, "Data final registrada: " + textInput);
+                proximoEstado = GERANDO_RELATORIO_PERSONALIZADO;
+            }
+
             case "SUBMENU_GESTAO_USUARIOS" -> proximoEstado = MAPA_MENU_GESTAO_USUARIOS.getOrDefault(textInput, "ESTADO_INVALIDO");
 
             case UserStateManagerService.AGUARDANDO_CONTINUACAO -> {
@@ -249,24 +266,92 @@ public class ChatbotService {
 
             case "7_DIAS_RELATORIO" -> {
                 messageService.sendMessage(numUser, "Gerando relatório de 7 dias...");
-
                 LocalDate dataFim = LocalDate.now();
                 LocalDate dataInicio = dataFim.minusDays(6);
-
                 DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-
                 enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
-
-                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
+                messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+            
+            case "15_DIAS_RELATORIO" -> {
+                messageService.sendMessage(numUser, "Gerando relatório de 15 dias...");
+                LocalDate dataFim = LocalDate.now();
+                LocalDate dataInicio = dataFim.minusDays(14);
+                DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String dataInicioFormatada = dataInicio.format(formatadorApi);
+                String dataFimFormatada = dataFim.format(formatadorApi);
+                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "30_DIAS_RELATORIO" -> {
+                messageService.sendMessage(numUser, "Gerando relatório de 30 dias...");
+                LocalDate dataFim = LocalDate.now();
+                LocalDate dataInicio = dataFim.minusDays(29);
+                DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String dataInicioFormatada = dataInicio.format(formatadorApi);
+                String dataFimFormatada = dataFim.format(formatadorApi);
+                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "MES_ATUAL_RELATORIO" -> {
+                messageService.sendMessage(numUser, "Gerando relatório do mês atual...");
+                DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate dataInicio = LocalDate.now().withDayOfMonth(1);
+                LocalDate dataFim = LocalDate.now();
+                String dataInicioFormatada = dataInicio.format(formatadorApi);
+                String dataFimFormatada = dataFim.format(formatadorApi);
+                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O relatório do mês atual (" + dataInicioFormatada + " a " + dataFimFormatada + ") foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "MES_ANTERIOR_RELATORIO" -> {
+                messageService.sendMessage(numUser, "Gerando relatório do mês anterior...");
+                DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate mesAnterior = LocalDate.now().minusMonths(1);
+                LocalDate dataInicio = mesAnterior.with(TemporalAdjusters.firstDayOfMonth());
+                LocalDate dataFim = mesAnterior.with(TemporalAdjusters.lastDayOfMonth());
+                String dataInicioFormatada = dataInicio.format(formatadorApi);
+                String dataFimFormatada = dataFim.format(formatadorApi);
+                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                messageService.sendMessage(numUser, "Pronto! O relatório do mês anterior (" + dataInicioFormatada + " a " + dataFimFormatada + ") foi enviado. Deseja algo mais?");
+                proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+            }
+
+            case "PERSONALIZADO_RELATORIO" -> {
+                resposta = "Para o relatório personalizado, por favor, insira a data inicial (formato DD/MM/AAAA):";
+                proximoEstado = INSERINDO_DATA_INICIO_RELATORIO;
+            }
+
+            case GERANDO_RELATORIO_PERSONALIZADO -> {
+                String dataInicio = (String) userStateManager.getTempValue(numUser, "dataInicioRelatorio");
+                String dataFim = (String) userStateManager.getTempValue(numUser, "dataFimRelatorio");
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate inicio = LocalDate.parse(dataInicio, fmt);
+                LocalDate fim = LocalDate.parse(dataFim, fmt);
+                long diff = ChronoUnit.DAYS.between(inicio, fim);
+
+                if (diff < 0) {
+                    resposta = "A data final é menor que a inicial. Por favor, insira novamente a data inicial (formato DD/MM/AAAA).";
+                    proximoEstado = INSERINDO_DATA_INICIO_RELATORIO;
+                } else {
+                    messageService.sendMessage(numUser, "Gerando relatório de " + dataInicio + " até " + dataFim + "...");
+                    enviarRelatorioGerado(numUser, dataInicio, dataFim, reportRequest);
+                    messageService.sendMessage(numUser, "Pronto! O relatório personalizado foi enviado. Deseja algo mais?");
+                    proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
+                }
             }
 
             case "SUBMENU_GESTAO_USUARIOS" -> resposta = TEXTO_MENU_GESTAO_USUARIOS;
 
             case "ESTADO_INVALIDO" -> {
-                resposta = "";
                 messageService.sendMessage(numUser, "Opção inválida!");
                 switch (estadoAtual) {
                     case "SUBMENU_RESUMO" -> {
@@ -314,7 +399,6 @@ public class ChatbotService {
             if (pdfBytes != null && pdfBytes.length > 0) {
                 System.out.println("PDF gerado, preparando para enviar...");
 
-                // CORREÇÃO: Usar um formato de data seguro para o nome do arquivo
                 String dataInicioNomeArquivo = dataInicioFormatada.replace("/", "-");
                 String dataFimNomeArquivo = dataFimFormatada.replace("/", "-");
                 String nomeArquivo = "Relatorio_" + dataInicioNomeArquivo + "_a_" + dataFimNomeArquivo + ".pdf";
