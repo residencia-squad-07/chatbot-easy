@@ -12,13 +12,17 @@ import java.util.Map;
 
 @Component
 public class UserStateManagerService {
+    private final Cache userStateCache;
     public static final String PRIMEIRO_CONTATO = "PRIMEIRO_CONTATO";
     public static final String MENU_PRINCIPAL = "MENU_PRINCIPAL";
-    private final Cache userStateCache;
     public static final String INSERINDO_DATA_INICIO = "INSERINDO_DATA_INICIO";
     public static final String INSERINDO_DATA_FIM = "INSERINDO_DATA_FIM";
     public static final String GERANDO_RESUMO_PERSONALIZADO = "GERANDO_RESUMO_PERSONALIZADO";
     public static final String AGUARDANDO_CONTINUACAO = "AGUARDANDO_CONTINUACAO";
+    public static final String AGUARDAR_ID_DELETAR = "AGUARDAR_ID_DELETAR";
+    public static final String AGUARDAR_NOME_CADASTRO = "AGUARDAR_NOME_CADASTRO";
+    public static final String AGUARDAR_TELEFONE_CADASTRO = "AGUARDAR_TELEFONE_CADASTRO";
+    public static final String FINALIZAR_CADASTRO = "FINALIZAR_CADASTRO";
 
     private final Map<String, UserState> userStates = new HashMap<>();
     public void setTempValue(String userNumber, String key, Object value) {
