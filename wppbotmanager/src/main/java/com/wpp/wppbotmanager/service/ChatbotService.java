@@ -259,7 +259,7 @@ public class ChatbotService {
 
                 enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
 
-                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicio + " até " + dataFim + " foi enviado. Deseja algo mais?");
+                messageService.sendMessage(numUser, "Pronto! O resumo de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
 
@@ -314,7 +314,10 @@ public class ChatbotService {
             if (pdfBytes != null && pdfBytes.length > 0) {
                 System.out.println("PDF gerado, preparando para enviar...");
 
-                String nomeArquivo = "Relatorio_" + dataInicioFormatada + "_a_" + dataFimFormatada + ".pdf";
+                // CORREÇÃO: Usar um formato de data seguro para o nome do arquivo
+                String dataInicioNomeArquivo = dataInicioFormatada.replace("/", "-");
+                String dataFimNomeArquivo = dataFimFormatada.replace("/", "-");
+                String nomeArquivo = "Relatorio_" + dataInicioNomeArquivo + "_a_" + dataFimNomeArquivo + ".pdf";
 
                 messageService.sendDocument(numUser, pdfBytes, nomeArquivo);
 

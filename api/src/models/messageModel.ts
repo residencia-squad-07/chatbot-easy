@@ -7,12 +7,17 @@ export async function enviarMensagem(numero: string, texto: string) {
   await sock.sendMessage(`${numero}@s.whatsapp.net`, { text: texto });
 }
 
-export async function enviarDocumento(numero: string, buffer: Buffer, nomeArquivo: string) {
+export async function enviarDocumento(numero: string, filePath: string, nomeArquivo: string) {
     const sock = await getSock();
+    if (!sock) throw new Error("Bot ainda não está conectado");
 
-    console.log('Enviando documento ${nomeArquivo} para ${numero}');
-    // @ts-ignore
-    await sock.sendMessage('${numero}@s.whatsapp.net', { document: buffer, mimetype: 'application/pdf', fileName: nomeArquivo});
+    console.log('Enviando documento ${nomeArquivo} para ${numero} a partir de ${filePath}');
+
+    await sock.sendMessage(`${numero}@s.whatsapp.net`, {
+        document: { url: filePath },
+        mimetype: 'application/pdf',
+        fileName: nomeArquivo
+    });
 }
 
 

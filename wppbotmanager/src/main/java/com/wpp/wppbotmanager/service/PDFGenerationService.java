@@ -7,6 +7,8 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -24,11 +26,12 @@ public class PDFGenerationService {
         this.webClient = webClient;
     }
 
-    public byte[] gerarRelatorioFinanceiroPdf(OmieDTO.OmieApiRequest request) throws JRException {
+    public byte[] gerarRelatorioFinanceiroPdf(OmieDTO.OmieApiRequest request) throws JRException, FileNotFoundException {
         RelatorioFinanceiroModel dadosFinanceiros = buscarDadosFinanceiros(request);
 
-        InputStream jasperStream = this.getClass().getResourceAsStream("/reports/relatorioestruturado.jasper");
-        InputStream imageStream = getClass().getResourceAsStream("/images/logo.png");
+        InputStream jasperStream = new FileInputStream("C:/Users/Anderson/Desktop/chatbot-easy/wppbotmanager/src/main/resources/reports/relatorioestruturado.jrxml");
+
+        String imagePath = "C:/Users/Anderson/Desktop/chatbot-easy/wppbotmanager/src/main/resources/logo.png";
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         
@@ -39,12 +42,13 @@ public class PDFGenerationService {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("resumoGeral", dadosFinanceiros.getResumoGeral());
         parameters.put("detalhesPorCategoria", dadosFinanceiros.getDetalhesPorCategoria());
-        parameters.put("Logo_Imagem", imageStream);
+        parameters.put("Logo_Imagem", imagePath);
         parameters.put("DIAS_ANALISADOS", (int) diasAnalisados);
 
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(Collections.singletonList(dadosFinanceiros));
 
-        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperStream, parameters, dataSource);
+        JasperReport jasperReport = JasperCompileManager.compileReport(jasperStream);
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 
         return JasperExportManager.exportReportToPdf(jasperPrint);
     }
