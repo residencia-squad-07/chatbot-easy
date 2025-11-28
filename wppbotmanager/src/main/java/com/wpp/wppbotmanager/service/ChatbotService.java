@@ -16,13 +16,14 @@ public class ChatbotService {
     private final UserStateManagerService userStateManager;
     private final MessageService messageService;
     private final EnviarResumoService enviarResumoService;
-    private final PDFGenerationService pdfGenerationService;
+    private final EnviarRelatorioService enviarRelatorioService;
 
-    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, PDFGenerationService pdfGenerationService) {
+
+    public ChatbotService(UserStateManagerService userStateManager, MessageService messageService, EnviarRelatorioService enviarRelatorioService) {
         this.userStateManager = userStateManager;
         this.messageService = messageService;
         this.enviarResumoService = new EnviarResumoService(messageService);
-        this.pdfGenerationService = pdfGenerationService;
+        this.enviarRelatorioService = enviarRelatorioService;
     }
 
     private static final String INSERINDO_DATA_INICIO_RELATORIO = "INSERINDO_DATA_INICIO_RELATORIO";
@@ -271,7 +272,7 @@ public class ChatbotService {
                 DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
                 messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
@@ -283,7 +284,7 @@ public class ChatbotService {
                 DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
                 messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
@@ -295,7 +296,7 @@ public class ChatbotService {
                 DateTimeFormatter formatadorApi = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
                 messageService.sendMessage(numUser, "Pronto! O relatório de " + dataInicioFormatada + " até " + dataFimFormatada + " foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
@@ -307,7 +308,7 @@ public class ChatbotService {
                 LocalDate dataFim = LocalDate.now();
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
                 messageService.sendMessage(numUser, "Pronto! O relatório do mês atual (" + dataInicioFormatada + " a " + dataFimFormatada + ") foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
@@ -320,7 +321,7 @@ public class ChatbotService {
                 LocalDate dataFim = mesAnterior.with(TemporalAdjusters.lastDayOfMonth());
                 String dataInicioFormatada = dataInicio.format(formatadorApi);
                 String dataFimFormatada = dataFim.format(formatadorApi);
-                enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
+                enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicioFormatada, dataFimFormatada, reportRequest);
                 messageService.sendMessage(numUser, "Pronto! O relatório do mês anterior (" + dataInicioFormatada + " a " + dataFimFormatada + ") foi enviado. Deseja algo mais?");
                 proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
             }
@@ -343,7 +344,7 @@ public class ChatbotService {
                     proximoEstado = INSERINDO_DATA_INICIO_RELATORIO;
                 } else {
                     messageService.sendMessage(numUser, "Gerando relatório de " + dataInicio + " até " + dataFim + "...");
-                    enviarRelatorioGerado(numUser, dataInicio, dataFim, reportRequest);
+                    enviarRelatorioService.enviarRelatorioGerado(numUser, dataInicio, dataFim, reportRequest);
                     messageService.sendMessage(numUser, "Pronto! O relatório personalizado foi enviado. Deseja algo mais?");
                     proximoEstado = UserStateManagerService.AGUARDANDO_CONTINUACAO;
                 }
@@ -381,37 +382,6 @@ public class ChatbotService {
             messageService.sendMessage(numUser, resposta);
         }
         userStateManager.setState(numUser, proximoEstado);
-    }
-
-    private void enviarRelatorioGerado(String numUser, String dataInicioFormatada, String dataFimFormatada, ReceiveReportRequest reportRequest) {
-        try {
-            String appKey = "5614700718627";
-            String appSecret = "2ae8328ce879960d99ba83e7986805a3";
-
-            OmieDTO.OmieApiRequest request = new OmieDTO.OmieApiRequest();
-            request.setAppKey(appKey);
-            request.setAppSecret(appSecret);
-            request.setDataInicio(dataInicioFormatada);
-            request.setDataFim(dataFimFormatada);
-
-            byte[] pdfBytes = pdfGenerationService.gerarRelatorioFinanceiroPdf(request);
-
-            if (pdfBytes != null && pdfBytes.length > 0) {
-                System.out.println("PDF gerado, preparando para enviar...");
-
-                String dataInicioNomeArquivo = dataInicioFormatada.replace("/", "-");
-                String dataFimNomeArquivo = dataFimFormatada.replace("/", "-");
-                String nomeArquivo = "Relatorio_" + dataInicioNomeArquivo + "_a_" + dataFimNomeArquivo + ".pdf";
-
-                messageService.sendDocument(numUser, pdfBytes, nomeArquivo);
-
-            } else {
-                messageService.sendMessage(numUser, "Não foi possível gerar o relatório.");
-            }
-        } catch (Exception e) {
-            System.out.println("Não foi possivel montar o relatório por causa de :" + e.getMessage());
-            messageService.sendMessage(numUser,"Ocorreu um erro interno ao gerar o relatório.");
-        }
     }
 
     public void inactiveUser(String numUser) {
