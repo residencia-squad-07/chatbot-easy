@@ -39,12 +39,20 @@ const agendSchema = joi.object({
   status: joi.string().valid('ativo',`inativo`),
   id_usuario: joi.number().optional()
 })
+const userAdmSchema = joi.object({
+    nome: joi.string().optional(),
+    email: joi.string().email().optional(),
+    senha: joi.string().optional(),
+    id_usuario: joi.number().optional()
+}).min(1);
+
 
 export default {
-  adminSchema,
-  configErpSchema,
-  empresaSchema,
-  solicitacaoSchema,
-  usuarioSchema,
-  agendSchema
+    adminSchema,
+    configErpSchema,
+    empresaSchema,
+    solicitacaoSchema,
+    usuarioSchema,
+    agendSchema,
+    userAdmSchema
 }
