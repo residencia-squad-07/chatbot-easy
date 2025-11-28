@@ -1,39 +1,25 @@
 package com.wpp.wppbotmanager.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
 public class OmieDTO {
 
+    @Getter
+    @Setter
     public static class OmieApiRequest {
         private String appKey;
         private String appSecret;
-        private Integer dias;
 
-        public Integer getDias() {
-            return dias;
-        }
+        @JsonProperty("data_inicio")
+        private String dataInicio;
 
-        public void setDias(Integer dias) {
-            this.dias = dias;
-        }
+        @JsonProperty("data_fim")
+        private String dataFim;
 
-        public String getAppKey() {
-            return appKey;
-        }
-
-        public void setAppKey(String appKey) {
-            this.appKey = appKey;
-        }
-
-        public String getAppSecret() {
-            return appSecret;
-        }
-
-        public void setAppSecret(String appSecret) {
-            this.appSecret = appSecret;
-        }
-
-        public OmieApiRequest(String appKey, String appSecret) {
-            this.appKey = appKey;
-            this.appSecret = appSecret;
-        }
+        // O construtor agora não é mais necessário, o Jackson cuidará da criação.
+        // Se você precisar criar este objeto manualmente em algum lugar, adicione um construtor vazio.
+        public OmieApiRequest() {}
     }
 }
