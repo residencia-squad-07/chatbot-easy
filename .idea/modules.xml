@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/chatbot-easy.iml" filepath="$PROJECT_DIR$/.idea/chatbot-easy.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wppbotmanager/wppbotmanager.iml" filepath="$PROJECT_DIR$/wppbotmanager/wppbotmanager.iml" />
     </modules>
   </component>
 </project>

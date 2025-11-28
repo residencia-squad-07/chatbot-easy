@@ -9,22 +9,49 @@ const getAllUser = async () => {
         type: null,
         message: allUser,
         status: 200
-    }    
+    }
 }
 const getUsuariosByEmp = async (id_empresa: number) => {
-  const usuarios = await userModel.getUsuariosByEmp(id_empresa);
-  if (!usuarios || usuarios.length === 0) {
+    const usuarios = await userModel.getUsuariosByEmp(id_empresa);
+    if (!usuarios || usuarios.length === 0) {
+        return {
+            type: 'error',
+            message: 'Nenhum usuário encontrado para essa empresa',
+            status: 404,
+        };
+    }
     return {
-      type: 'error',
-      message: 'Nenhum usuário encontrado para essa empresa',
-      status: 404,
+        type: null,
+        message: usuarios,
+        status: 200,
     };
-  }
-  return {
-    type: null,
-    message: usuarios,
-    status: 200,
-  };
+};
+const marcarUsuarioInativo = async (id: number) => {
+    const usuario = await userModel.getUsuarioById(id);
+
+    if (!usuario) {
+        return {
+            type: 'error',
+            message: 'Usuário não encontrado',
+            status: 404
+        };
+    }
+
+    const affectedRows = await userModel.marcarUsuarioInativo(id);
+
+    if (affectedRows === 0) {
+        return {
+            type: 'error',
+            message: 'Falha ao atualizar usuário',
+            status: 400
+        };
+    }
+
+    return {
+        type: null,
+        message: 'Usuário marcado como inativo com sucesso',
+        status: 200
+    };
 };
 
 const getUserById = async (id:number) => {
@@ -41,7 +68,7 @@ const getUserById = async (id:number) => {
         message: userById,
         status: 200
     }
-    
+
 }
 
 const createUsuario = async (Usuario: Usuario ) => {
@@ -75,7 +102,7 @@ const deleteUsuario = async (id:number) => {
         message: 'Usuario deletado com sucesso',
         status: 200
     }
-    
+
 }
 
 const updateUsuario = async (id: number, usuario: Partial<Omit<Usuario, 'papel'>>) => {
@@ -113,21 +140,21 @@ const getUsuarioByTelefone = async (telefone: string) => {
 }
 
 const marcarPrimeiroContato = async (telefone: string) => {
-  const result = await userModel.marcarPrimeiroContato(telefone);
+    const result = await userModel.marcarPrimeiroContato(telefone);
 
-  if (!result) {
+    if (!result) {
+        return {
+            type: 'error',
+            message: 'Usuário não encontrado ou já possui primeiro contato registrado',
+            status: 400
+        };
+    }
+
     return {
-      type: 'error',
-      message: 'Usuário não encontrado ou já possui primeiro contato registrado',
-      status: 400
+        type: null,
+        message: 'Primeiro contato registrado com sucesso',
+        status: 200
     };
-  }
-
-  return {
-    type: null,
-    message: 'Primeiro contato registrado com sucesso',
-    status: 200
-  };
 };
 
 export default {
@@ -138,5 +165,6 @@ export default {
     updateUsuario,
     getUsuariosByEmp,
     getUsuarioByTelefone,
-    marcarPrimeiroContato
+    marcarPrimeiroContato,
+    marcarUsuarioInativo
 }

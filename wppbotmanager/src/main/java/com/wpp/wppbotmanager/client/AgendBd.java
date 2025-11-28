@@ -1,9 +1,14 @@
 package com.wpp.wppbotmanager.client;
 
+import com.wpp.wppbotmanager.dto.AgendProxExecDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.wpp.wppbotmanager.dto.AgendamentoDto;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class AgendBd {
@@ -12,9 +17,18 @@ public class AgendBd {
 
     public AgendBd(WebClient.Builder builder) {
     this.agendBd = builder
-      .baseUrl("http://localhost:3001/Agendamento")
+      .baseUrl("http://localhost:3001/agend")
       .build();
   }
+
+    public AgendamentoDto[] getAgendAsDto() {
+        return agendBd.get()
+                .uri("/lagend")
+                .retrieve()
+                .bodyToMono(AgendamentoDto[].class)
+                .doOnError(e -> System.err.println("Erro ao chamar API TS: " + e.getMessage()))
+                .block();
+    }
 
   public String getAgend() {
     return agendBd.get()
@@ -45,6 +59,20 @@ public class AgendBd {
           .block();
   }
 
+  public String updateProxExec(Integer id, LocalDate novaData) {
+
+      Map<String, Object> body = new HashMap<>();
+      body.put("proxima_execucao", novaData.toString());
+
+      return agendBd.put()
+          .uri("/pproxecec/{id}", id)
+          .bodyValue(body)
+          .retrieve()
+          .bodyToMono(String.class)
+          .doOnError(e -> System.err.println("Erro ao atualizar proxima execucao: " + e.getMessage()))
+          .block();
+  }
+
   public String deleteAgend(Integer id) {
       return agendBd.delete()
           .uri("/dagend/{id}", id)
@@ -60,6 +88,15 @@ public class AgendBd {
           .retrieve()
           .bodyToMono(String.class)
           .doOnError(e -> System.err.println("Erro ao buscar agendamento por id: " + e.getMessage()))
+          .block();
+  }
+
+  public String getAgendByUserId(Integer id_user) {
+      return agendBd.get()
+          .uri("/gagendui/{id_user}", id_user)
+          .retrieve()
+          .bodyToMono(String.class)
+          .doOnError(e -> System.err.println("Erro ao buscar agendamento por id_user: " + e.getMessage()))
           .block();
   }
 }

@@ -31,14 +31,17 @@ const usuarioSchema = joi.object({
   telefone: joi.string().optional(),
   papel: joi.string().valid('administrador', 'funcionario'),
   id_empresa: joi.number().optional()
-}).min(1)
+}).min(1);
 
 const agendSchema = joi.object({
-  data_solicitacao: joi.date().optional(),
-  proxima_execucao: joi.date().optional(),
-  status: joi.string().valid('ativo',`inativo`),
+  data_solicitacao: joi.string().optional(),
+  status: joi.string().valid('ativo','inativo'),
   id_usuario: joi.number().optional()
-})
+}).min(1);
+
+const agendUpdateSchema = joi.object({
+  proxima_execucao: joi.string().optional()
+}).min(1);
 
 export default {
   adminSchema,
@@ -46,5 +49,6 @@ export default {
   empresaSchema,
   solicitacaoSchema,
   usuarioSchema,
-  agendSchema
+  agendSchema,
+  agendUpdateSchema
 }
