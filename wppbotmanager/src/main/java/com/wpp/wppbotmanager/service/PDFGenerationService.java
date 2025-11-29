@@ -4,11 +4,15 @@ import com.wpp.wppbotmanager.dto.OmieDTO;
 import com.wpp.wppbotmanager.model.RelatorioFinanceiroModel;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.eclipse.jdt.internal.compiler.batch.FileSystem;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -26,15 +30,18 @@ public class PDFGenerationService {
         this.webClient = webClient;
     }
 
-    public byte[] gerarRelatorioFinanceiroPdf(OmieDTO.OmieApiRequest request) throws JRException, FileNotFoundException {
+    public byte[] gerarRelatorioFinanceiroPdf(OmieDTO.OmieApiRequest request) throws JRException, IOException {
         RelatorioFinanceiroModel dadosFinanceiros = buscarDadosFinanceiros(request);
 
-        InputStream jasperStream = new FileInputStream("C:/Users/Anderson/Desktop/chatbot-easy/wppbotmanager/src/main/resources/reports/relatorioestruturado.jrxml");
+        Resource caminho = new ClassPathResource("reports/relatorioestruturado.jrxml");
+        InputStream jasperStream = caminho.getInputStream();
 
-        String imagePath = "C:/Users/Anderson/Desktop/chatbot-easy/wppbotmanager/src/main/resources/logo.png";
+
+        Resource image = new ClassPathResource("logo.png");
+        InputStream imagePath = image.getInputStream();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        
+
         LocalDate dataInicio = LocalDate.parse(dadosFinanceiros.getResumoGeral().getPeriodoAnalisado().getData_inicio(), formatter);
         LocalDate dataFim = LocalDate.parse(dadosFinanceiros.getResumoGeral().getPeriodoAnalisado().getData_fim(), formatter);
         long diasAnalisados = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;

@@ -12,7 +12,7 @@
 	<parameter name="detalhesPorCategoria" class="com.wpp.wppbotmanager.dto.DetalhesPorCategoria"/>
 	<parameter name="DIAS_ANALISADOS" class="java.lang.Integer"/>
 	<!-- MUDANÇA: O parâmetro agora espera uma String (caminho do arquivo) -->
-	<parameter name="Logo_Imagem" class="java.lang.String"/>
+	<parameter name="Logo_Imagem" class="java.io.InputStream"/>
 	<queryString language="jsonql">
 		<![CDATA[]]>
 	</queryString>
@@ -50,11 +50,11 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$P{resumoGeral}.getPeriodoAnalisado().getData_inicio() + " a " + $P{resumoGeral}.getPeriodoAnalisado().getData_fim()]]></textFieldExpression>
 			</textField>
-			<image>
-				<reportElement x="740" y="-30" width="82" height="80" uuid="7aa95e7f-f83a-4ebe-98cc-9d37c7808abf"/>
-				<!-- A expressão da imagem continua a mesma, ela vai interpretar a String como um caminho -->
-				<imageExpression><![CDATA[$P{Logo_Imagem}]]></imageExpression>
-			</image>
+            <image>
+                <!-- A expressão da imagem continua a mesma, ela vai interpretar a String como um caminho -->
+                <reportElement x="740" y="-30" width="82" height="80" uuid="7aa95e7f-f83a-4ebe-98cc-9d37c7808abf"/>
+                <imageExpression><![CDATA[$P{Logo_Imagem}]]></imageExpression>
+            </image>
 			<textField>
 				<reportElement x="230" y="20" width="170" height="20" forecolor="#808080" uuid="33797790-8f0b-4741-8b58-17ef2e2bdb22"/>
 				<textElement>

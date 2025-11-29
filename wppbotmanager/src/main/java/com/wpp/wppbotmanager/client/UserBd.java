@@ -100,4 +100,11 @@ public class UserBd {
                 .doOnError(e -> System.err.println("Erro ao marcar usuário como inativo: " + e.getMessage()))
                 .block();
     }
+    public UserDto getUserDtoById(Integer id) {
+        return userTb.get()
+                .uri("/guser/{id}", id)
+                .retrieve()
+                .bodyToMono(UserDto.class)
+                .block();
+    }
 }
