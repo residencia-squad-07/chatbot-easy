@@ -63,8 +63,8 @@ public class EnviarResumoService {
                 empresaNode = empresaNode.get(0);
             }
 
-            String appKey = empresaNode.path("app_key").asText(empresaNode.path("appKey").asText(null));
-            String appSecret = empresaNode.path("app_secret").asText(empresaNode.path("appSecret").asText(null));
+            String appKey = empresaNode.path("app_Key").asText(empresaNode.path("appKey").asText(null));
+            String appSecret = empresaNode.path("app_Secret").asText(empresaNode.path("appSecret").asText(null));
 
             if (appKey == null || appSecret == null) {
                 messageService.sendMessage(numUser, "Dados de integração não encontrados.");

@@ -1,9 +1,7 @@
-# Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
-
-auth_info_bot/
-auth_info_baileys/
+# Node.js 
+node_modules/ 
+npm-debug.log 
+yarn-error.log 
+auth_info_bot/ 
+auth_info_baileys/ 
 /src/generated/prisma
-/src/temp

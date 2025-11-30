@@ -37,8 +37,8 @@ public class OmieService {
                 throw new RuntimeException("Empresa não encontrada com ID " + request.getIdEmpresa());
             }
 
-            String appKey = empresaSelecionada.path("app_key").asText();
-            String appSecret = empresaSelecionada.path("app_secret").asText();
+            String appKey = empresaSelecionada.path("app_Key").asText();
+            String appSecret = empresaSelecionada.path("app_Secret").asText();
             String nomeEmpresa = empresaSelecionada.path("nome").asText();
 
             System.out.println("Gerando relatório de " + dias + " dias para empresa " + nomeEmpresa);
@@ -47,8 +47,8 @@ public class OmieService {
             String url = "http://localhost:3001/omie/gerar-relatorio";
 
             Map<String, Object> body = new HashMap<>();
-            body.put("app_key", appKey);
-            body.put("app_secret", appSecret);
+            body.put("app_Key", appKey);
+            body.put("app_Secret", appSecret);
             body.put("dias", dias);
             body.put("empresa_nome", nomeEmpresa);
 

@@ -12,7 +12,6 @@ public class AdministradorDto {
   private String email;
   private String senha;
 
-  public AdministradorDto() {}
 
   public AdministradorDto(Integer id_admin, String nome, String email, String senha) {
     this.id_admin = id_admin;
