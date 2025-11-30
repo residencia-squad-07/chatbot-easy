@@ -18,6 +18,7 @@
     "@types/lodash": "^4.17.20",
     "@types/node": "^24.5.0",
     "@types/node-fetch": "^2.6.13",
+    "@types/qrcode-terminal": "^0.12.2",
     "@types/ws": "^8.18.1",
     "fs": "^0.0.1-security",
     "inquirer": "^12.9.4",

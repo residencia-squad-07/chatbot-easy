@@ -16,7 +16,7 @@ const getUserAdmById = async (id: number) => {
     if (!userAdm) {
         return {
             type: 'error',
-            message: 'User_Adm não encontrado',
+            message: 'User_Admin não encontrado',
             status: 404
         };
     }
@@ -41,7 +41,7 @@ const createUserAdm = async (data: UserAdm) => {
     const insertId = await userAdmModel.createUserAdm(data);
     return {
         type: null,
-        message: `User_Adm criado com sucesso no id: ${insertId}`,
+        message: `User_Admin criado com sucesso no id: ${insertId}`,
         status: 201
     };
 };
@@ -51,7 +51,7 @@ const updateUserAdm = async (id: number, data: Partial<UserAdm>) => {
     if (!exists) {
         return {
             type: 'error',
-            message: 'User_Adm não encontrado',
+            message: 'User_Admin não encontrado',
             status: 404
         };
     }
@@ -68,7 +68,7 @@ const updateUserAdm = async (id: number, data: Partial<UserAdm>) => {
     await userAdmModel.updateUserAdm(id, data);
     return {
         type: null,
-        message: 'User_Adm atualizado com sucesso',
+        message: 'User_Admin atualizado com sucesso',
         status: 201
     };
 };
@@ -79,7 +79,7 @@ const deleteUserAdm = async (id: number) => {
     if (!exists) {
         return {
             type: 'error',
-            message: 'User_Adm não encontrado',
+            message: 'User_Admin não encontrado',
             status: 404
         };
     }
@@ -87,7 +87,7 @@ const deleteUserAdm = async (id: number) => {
     await userAdmModel.deleteUserAdm(id);
     return {
         type: null,
-        message: "User_Adm deletado com sucesso",
+        message: "User_Admin deletado com sucesso",
         status: 200
     };
 };
