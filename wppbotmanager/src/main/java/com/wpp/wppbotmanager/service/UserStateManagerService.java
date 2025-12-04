@@ -23,6 +23,9 @@ public class UserStateManagerService {
     public static final String AGUARDAR_NOME_CADASTRO = "AGUARDAR_NOME_CADASTRO";
     public static final String AGUARDAR_TELEFONE_CADASTRO = "AGUARDAR_TELEFONE_CADASTRO";
     public static final String FINALIZAR_CADASTRO = "FINALIZAR_CADASTRO";
+    public static final String INSERINDO_DATA_INICIO_RELATORIO = "INSERINDO_DATA_INICIO_RELATORIO";
+    public static final String INSERINDO_DATA_FIM_RELATORIO = "INSERINDO_DATA_FIM_RELATORIO";
+    public static final String GERANDO_RELATORIO_PERSONALIZADO = "GERANDO_RELATORIO_PERSONALIZADO";
 
     private final Map<String, UserState> userStates = new HashMap<>();
     public void setTempValue(String userNumber, String key, Object value) {
